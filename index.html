@@ -82,14 +82,31 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .mini u{position:absolute;background:var(--accent);opacity:.55;border-radius:1px}
 [aria-pressed="true"] .mini{border-color:var(--accent)}
 .collapse-btn{display:none}
+.panel > .tabs.in-stage{display:none}
 @media (max-width:900px){
   .wrap{grid-template-columns:minmax(0,1fr)}
   .stage{z-index:20;top:calc(var(--top-h) + env(safe-area-inset-top,0px));background:var(--bg);padding-block:10px 8px;margin-top:-16px;border-bottom:1px solid var(--line)}
-  #cv{max-height:34vh}
-  .stage.small #cv{max-height:16vh}
+  #cv{max-height:27vh}
+  .stage.small #cv{max-height:14vh}
   .stage.hide .canvas-box{display:none}
   .collapse-btn{display:inline-flex}
   .quick{margin-left:0}
+  .stage .tabs.in-stage{position:static;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:4px}
+  .canvas-box{padding:6px}
+}
+@media (max-width:620px){
+  .logo{flex:1 1 auto;min-width:0;margin-right:0}
+  .logo b{font-size:15px;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .top .btn{min-height:36px;padding:0 8px;border-radius:9px}
+  .top #btnInstall{display:none}
+  .hist{gap:2px}
+  .meta{display:none}
+  .stage-bar{gap:6px;flex-wrap:nowrap}
+  .quick button{width:34px;height:28px}
+  .quick .mini.l{width:20px;height:12px}.quick .mini.p{width:10px;height:16px}
+  .collapse-btn{margin-left:auto;padding:0 8px}
+  .drag-hint{display:none}
+  .chip-warn{display:none}
 }
 
 /* panel */
@@ -123,6 +140,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .wkcs{display:flex;flex-wrap:wrap;gap:10px}.wkc{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .wkc span{font-weight:700;font-size:13px}.wkc em,.drow em{font-style:normal;font-size:10px;color:var(--muted)}
 .mini-reset{border:0;background:transparent;color:var(--sub);font-size:10px;cursor:pointer;padding:0}
+.wkrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto 34px;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.wkrow.cur{border-color:var(--accent)}.wkrow b{font:700 14px var(--f-num)}
+@media (max-width:480px){.wkrow{grid-template-columns:auto minmax(0,1fr) auto 34px}.wkrow > .hint:nth-of-type(1){grid-column:1/-1;grid-row:2}}
+.wk-tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid currentColor}.wk-tag.now{color:var(--accent)}.wk-tag.past{color:var(--muted)}.wk-tag.future{color:var(--sub)}
 .avprev{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .avprev figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
 .avprev figcaption{font-size:11.5px;color:var(--muted)}
@@ -289,7 +310,7 @@ input[type=time]::-webkit-datetime-edit{padding:0}
       <span class="chip-warn" id="warn" hidden></span>
       <span class="drag-hint" id="dragHint" hidden>プレビューをドラッグで移動／ホイール・ピンチで拡大縮小</span>
       <div class="quick" id="quick" role="group" aria-label="レイアウト切り替え"></div>
-      <button class="btn sm ghost collapse-btn" id="btnCollapse">プレビュー：大</button>
+      <button class="btn sm ghost collapse-btn" id="btnCollapse" aria-label="プレビューの大きさ">表示：中</button>
     </div>
   </section>
 
@@ -410,6 +431,14 @@ function zoneName(z){for(const[,list]of ZONES)for(const[id,n]of list)if(id===z)r
 /* =========================================================
    state
    ========================================================= */
+function storeWeekView(){}
+function packWeek(){return S.days.map(d=>({off:!!d.off,offNote:d.offNote||'',offNoteEn:d.offNoteEn||'',slots:clone(d.slots)}))}
+function weekEmpty(w){return w.every(d=>!d.off&&!d.slots.length&&!d.offNote&&!d.offNoteEn)}
+function storeWeek(){const w=packWeek();if(weekEmpty(w))delete S.weeks[S.weekStart];else S.weeks[S.weekStart]={days:w,saved:Date.now()}}
+function loadWeek(ws){const w=S.weeks[ws];S.days.forEach((d,i)=>{const x=w&&w.days[i];d.off=x?x.off:false;d.offNote=x?x.offNote:'';d.offNoteEn=x?x.offNoteEn:'';d.slots=x?clone(x.slots):[]});S.weekStart=ws}
+function switchWeek(ws){if(ws===S.weekStart)return;storeWeek();loadWeek(ws);postDirty=false;changed(true)}
+function weekLabel(ws){const[y,m,d]=ws.split('-').map(Number);const a=new Date(Date.UTC(y,m-1,d)),b=new Date(Date.UTC(y,m-1,d+6));return`${a.getUTCFullYear()}.${pad2(a.getUTCMonth()+1)}.${pad2(a.getUTCDate())} – ${pad2(b.getUTCMonth()+1)}.${pad2(b.getUTCDate())}`}
+function addDaysStr(ws,n){const[y,m,d]=ws.split('-').map(Number);return ymd(new Date(y,m-1,d+n))}
 function sampleDays(st){
   const sl=(tag,t,e,title,titleEn)=>({tag,t,e,title,titleEn});
   const x=[[sl('t1','21:00','23:00','雑談','Just Chatting')],'off',[sl('t1','21:00','22:30','ゲーム実況','Gaming'),sl('t2','23:30','','歌枠','Karaoke')],[sl('tco','20:00','22:00','コラボ配信','Collab Stream')],'off',[sl('t1','22:00','','耐久配信','Endurance Stream')],[sl('tev','12:00','14:00','記念イベント','Anniversary Event'),sl('t2','21:00','22:00','マシュマロ読み','Q&A')]];
@@ -434,7 +463,9 @@ function defaultState(){
     days,
     style:{palette:'sunday',font:'mplus',num:'outfit',radius:36,border:3,alpha:P.alpha,outline:false,shadow:true,band:true,plate:false,
       ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],bgType:'grad',bgDots:true,bgSrc:'color',bgFill:'edge',dim:0,dimColor:'#000000',bgScale:100,bgX:50,bgY:50,frameUnder:false,frameFit:'stretch',holOn:true,sunColor:'',satColor:'',holColor:'',wkColor:'',bandFix:true},
-    layout:{mode:'land-right',landFull:'grid',avatar:38,guide:true,width:'fit',rowH:'auto',scale:1},
+    layout:{mode:'land-right',landFull:'grid',avatar:38,guide:true,width:'fit',rowH:'auto',scale:1,cols:1},
+    weeks:{},
+    head:{titleScale:100,subScale:100,rangeScale:100,footScale:100,bodyScale:100,align:'left',rangePos:'right',showEyebrow:true,showRange:true,showLegend:true,showNote:true},
     post:{hashtags:'#配信予定',tags:[{t:'#配信予定',on:true},{t:'#VTuber',on:true}],urls:[{pf:'YouTube',url:'',on:true}],tpl:'week',custom:'',withSecond:true,withEnd:true,withTitle:true,withOff:true,day:-1},
     img:{bg:false,frameAll:false,avatar:false,frame:[false,false,false,false,false,false,false]},
     avatar:{on:true,front:true,x:78,y:55,scale:90,flip:false,shadow:false,opacity:100,key:'off',keyColor:'#00ff00',tol:50,feather:30,connected:true,crop:{l:0,t:0,r:0,b:0},trim:true,autofit:true,rot:0,adj:{bri:0,con:0,sat:100,hue:0,warm:0}},
@@ -451,6 +482,7 @@ function normalize(s){
   if(!Array.isArray(s.days)||s.days.length!==7)s.days=d.days;
   s.days=s.days.map((x,i)=>({dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
   if(!s.tags.length)s.tags=d.tags;
+  if(!s.weeks||typeof s.weeks!=='object'||Array.isArray(s.weeks))s.weeks={};
   if(s.presetV!==2){const old={p1:['21:00','23:00'],p2:['23:00',''],p3:['12:00',''],p4:['20:00','']};s.presets.forEach(p=>{const o=old[p.id];if(o&&p.t===o[0]&&(p.e||'')===o[1]){p.t='';p.e=''}});s.presetV=2}
   if(s.time.tbdV!==2){s.time.tbdStart='dash';s.time.tbdEnd='dash';s.time.tbdV=2}
   s.presets=(s.presets||[]).map(p=>({e:'',...p}));
@@ -643,7 +675,8 @@ function buildModel(){
   const eyebrow=[S.channel.trim(),L==='both'?S.title.ja:''].filter(Boolean).join('  ·  ');
   const note=L==='ja'?S.note.ja:L==='en'?S.note.en:[S.note.ja,S.note.en].filter(Boolean).join('  ');
   const legendTxt=(L==='ja'?'時刻表記  ':'TIME ZONE  ')+legend;
-  return{days,title,eyebrow,range:rangeStr(),note,legend:legendTxt};
+  const HD=S.head;
+  return{days,title,eyebrow:HD.showEyebrow?eyebrow:'',range:rangeStr(),showRange:HD.showRange,note:HD.showNote?note:'',legend:HD.showLegend?legendTxt:''};
 }
 
 /* =========================================================
@@ -934,74 +967,91 @@ function rowMetrics(M,u){
   k.fixedW=k.lead+tW+k.gc+k.pad;
   k.rowH=Math.max(inner+2*k.padY,k.dayH);
   k.rowHs=inners.map(h=>S.layout.rowH==='equal'?k.rowH:Math.max(h+2*k.padY,k.dayH));
-  k.headH=(M.eyebrow?0.42*u*1.5:0)+1.3*u*1.05;k.headGap=0.5*u;
-  k.headW=mw(k.fH,M.title)+0.8*u+mw(k.fRange,M.range);
-  k.footH=0.34*u*1.6;k.footGap=0.4*u;
-  k.totalH=k.headH+k.headGap+k.rowHs.reduce((a,b)=>a+b,0)+6*k.rg+k.footGap+k.footH;
+  const HD=S.head,ts=HD.titleScale/100,es=HD.subScale/100,rs=HD.rangeScale/100,fs=HD.footScale/100;
+  k.fH=F('b',1.3*u*ts);k.fEy=F('b',0.42*u*es);k.fRange=F('num',0.62*u*rs);k.fFoot=F('reg',0.34*u*fs);
+  const hasT=!!(M.title||'').trim(),showR=M.showRange;
+  k.rBelow=showR&&(HD.rangePos==='below'||HD.align!=='left'||!hasT);k.rRight=showR&&!k.rBelow;
+  k.eyH=M.eyebrow?0.42*u*es*1.5:0;k.eyA=0.42*u*es;
+  k.tH=hasT?1.3*u*ts*1.05:0;k.tA=1.3*u*ts*0.88;
+  k.rH=k.rBelow?0.62*u*rs*1.45:0;k.rA=0.62*u*rs*1.0;
+  k.headH=k.eyH+k.tH+k.rH;k.headGap=k.headH?0.5*u:0;
+  k.headW=Math.max(M.eyebrow?mw(k.fEy,M.eyebrow):0,(hasT?mw(k.fH,M.title):0)+(k.rRight?0.8*u+mw(k.fRange,M.range):0),k.rBelow?mw(k.fRange,M.range):0);
+  k.footH=(M.legend||M.note)?0.34*u*fs*1.6:0;k.footGap=k.footH?0.4*u:0;
+  const cols=S.layout.cols===2?2:1,per=Math.ceil(7/cols);k.cols=cols;k.per=per;k.colGap=0.6*u;
+  let bodyH=0;for(let c=0;c<cols;c++){const hs=k.rowHs.slice(c*per,(c+1)*per);if(hs.length)bodyH=Math.max(bodyH,hs.reduce((a,b)=>a+b,0)+(hs.length-1)*k.rg)}
+  k.bodyH=bodyH;
+  k.totalH=k.headH+k.headGap+bodyH+k.footGap+k.footH;
   return k;
 }
 function layoutList(M,R,W,H){
   const short=Math.min(W,H),uMax=short*0.062,floor=short*0.034;
-  const need=(k,full)=>Math.max(k.fixedW+(full?k.titleNat:Math.min(k.titleNat,3.4*k.u)),k.headW);
-  const u1=bsearch(u=>{const k=rowMetrics(M,u);return need(k,true)<=R.w&&k.totalH<=R.h},6,uMax);
-  let u=u1,trunc=false;
-  if(u1<floor){const u2=bsearch(u=>{const k=rowMetrics(M,u);return need(k,false)<=R.w&&k.totalH<=R.h},6,uMax);u=Math.max(u1,Math.min(u2,floor));}
-  const k=rowMetrics(M,u);
-  let rowW=S.layout.width==='fill'?R.w:clamp(need(k,true),R.w*0.62,R.w);
-  if(k.fixedW+k.titleNat>rowW+0.5)trunc=true;
-  return{k,u,rowW,trunc,small:u<floor*0.999};
+  const colW=k=>(R.w-(k.cols-1)*k.colGap)/k.cols;
+  const need=(k,full)=>k.fixedW+(full?k.titleNat:Math.min(k.titleNat,3.4*k.u));
+  const fits=(k,full)=>need(k,full)<=colW(k)&&k.headW<=R.w&&k.totalH<=R.h;
+  const u1=bsearch(u=>fits(rowMetrics(M,u),true),6,uMax);
+  let u=u1;
+  if(u1<floor){const u2=bsearch(u=>fits(rowMetrics(M,u),false),6,uMax);u=Math.max(u1,Math.min(u2,floor))}
+  const bs=clamp((S.head.bodyScale||100)/100,0.4,1);u*=bs;
+  const k=rowMetrics(M,u);const cw=colW(k);
+  let rowW=S.layout.width==='fill'?cw:clamp(need(k,true),cw*0.62,cw);
+  if(k.cols*rowW+(k.cols-1)*k.colGap<k.headW)rowW=Math.min(cw,(k.headW-(k.cols-1)*k.colGap)/k.cols);
+  const blockW=k.cols*rowW+(k.cols-1)*k.colGap;
+  if(k.cols>1){
+    const avail=R.h-(k.headH+k.headGap+k.footGap+k.footH);
+    if(k.bodyH>0&&avail>k.bodyH){const f=Math.min(avail/k.bodyH,1.7);k.rowHs=k.rowHs.map(h=>h*f);k.rg*=f;
+      let bh=0;for(let c=0;c<k.cols;c++){const hs=k.rowHs.slice(c*k.per,(c+1)*k.per);if(hs.length)bh=Math.max(bh,hs.reduce((a,b)=>a+b,0)+(hs.length-1)*k.rg)}
+      k.bodyH=bh;k.totalH=k.headH+k.headGap+bh+k.footGap+k.footH}
+  }
+  return{k,u,rowW,blockW,trunc:k.fixedW+k.titleNat>rowW+0.5,small:u<floor*0.999&&bs>=1};
 }
 function drawList(ctx,M,R,W,H){
-  const L=layoutList(M,R,W,H),k=L.k,u=L.u,rowW=L.rowW;
-  const x0=R.x+(R.w-rowW)/2;let y=R.y+(R.h-k.totalH)/2;
-  const st=S.style;
-  // header
-  if(st.plate){ctx.save();rr(ctx,x0-0.4*u,y-0.3*u,rowW+0.8*u,k.headH+0.5*u,0.4*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
+  const L=layoutList(M,R,W,H),k=L.k,u=L.u,rowW=L.rowW,BW=L.blockW;
+  const x0=R.x+(R.w-BW)/2;let y=R.y+(R.h-k.totalH)/2;
+  const st=S.style,HD=S.head;
+  if(st.plate&&k.headH){ctx.save();rr(ctx,x0-0.4*u,y-0.3*u,BW+0.8*u,k.headH+0.5*u,0.4*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
   OUTLINE=st.outline?autoInk(st.ink):null;
-  if(M.eyebrow){T(ctx,ellip(k.fEy,M.eyebrow,rowW),x0,y+0.42*u,k.fEy,rgba(st.ink,0.8));y+=0.42*u*1.5}
-  const hb=y+1.3*u*0.88;
-  T(ctx,ellip(k.fH,M.title,rowW-mw(k.fRange,M.range)-0.8*u),x0,hb,k.fH,st.ink);
-  T(ctx,M.range,x0+rowW,hb,k.fRange,st.ink,'right');
-  y+=1.3*u*1.05+k.headGap;
-  OUTLINE=null;
+  const al=HD.align||'left',ax=al==='left'?x0:al==='center'?x0+BW/2:x0+BW;
+  if(k.eyH){T(ctx,ellip(k.fEy,M.eyebrow,BW),ax,y+k.eyA,k.fEy,rgba(st.ink,0.8),al);y+=k.eyH}
+  if(k.tH){const hb=y+k.tA;const rw=k.rRight?mw(k.fRange,M.range)+0.8*u:0;T(ctx,ellip(k.fH,M.title,BW-rw),ax,hb,k.fH,st.ink,al);if(k.rRight)T(ctx,M.range,x0+BW,hb,k.fRange,st.ink,'right');y+=k.tH}
+  if(k.rH){T(ctx,M.range,ax,y+k.rA,k.fRange,st.ink,al);y+=k.rH}
+  y+=k.headGap;OUTLINE=null;
+  const top=y;
   const r=st.radius/100*Math.min(Math.min(...k.rowHs),2.4*u)/2;
   for(const d of M.days){
+    const col=Math.floor(d.i/k.per);if(d.i%k.per===0)y=top;
+    const rx=x0+col*(rowW+k.colGap);
     const c=d.c,RH=k.rowHs[d.i];
-    const cb=cardBase(ctx,x0,y,rowW,RH,r,d.i,u,{x:x0,y,w:k.dayW,h:RH});
+    const cb=cardBase(ctx,rx,y,rowW,RH,r,d.i,u,{x:rx,y,w:k.dayW,h:RH});
     const bc=bandColor(d.i),dInk=cb.bandOn?autoInk(bc):c.t,wInk=cb.bandOn?autoInk(bc):bc;
     OUTLINE=(st.outline&&st.alpha<60)?autoInk(c.t):null;
     const bh=asc(k.fD1)+(d.sec?0.3*u+asc(k.fD2):0);const by=y+(RH-bh)/2;
-    const cx=x0+k.dayW/2;const ol=cb.bandOn?null:OUTLINE;
+    const cx=rx+k.dayW/2;const ol=cb.bandOn?null:OUTLINE;
     drawLine1(ctx,k,d,cx-line1W(k,d)/2,by+asc(k.fD1),dInk,wInk,ol);
     if(d.sec)drawLine2(ctx,k,d,cx-line2W(k,d)/2,by+asc(k.fD1)+0.3*u+asc(k.fD2),dInk,ol);
-    // items
     let ih=0;d.items.forEach((it,n)=>ih+=it._h+(n?k.sg:0));const bar=S.time.bar&&d.hasTime;if(bar)ih+=k.barH;
     let iy=y+(RH-ih)/2;const iy0=iy;
-    const xTag=x0+k.dayW+k.pad,xTime=x0+k.lead,xTi=xTime+k.timeW+k.gc,maxTi=x0+rowW-k.pad-xTi;
+    const xTag=rx+k.dayW+k.pad,xTime=rx+k.lead,xTi=xTime+k.timeW+k.gc,maxTi=rx+rowW-k.pad-xTi;
     for(const it of d.items){
       const cy=iy+it._h/2;
       if(it.tag)pill(ctx,xTag,cy,it.tag,k);
-      if(it.kind==='slot'){
-        drawTime(ctx,xTime,cy,k,it,c.t);
-        drawTitle(ctx,it,xTi,cy,maxTi,k,c.t);
-      }else{
-        drawTitle(ctx,it,xTime,cy,x0+rowW-k.pad-xTime,k,c.t,it.kind==='off'?0.85:0.65);
-      }
+      if(it.kind==='slot'){drawTime(ctx,xTime,cy,k,it,c.t);drawTitle(ctx,it,xTi,cy,maxTi,k,c.t)}
+      else drawTitle(ctx,it,xTime,cy,rx+rowW-k.pad-xTime,k,c.t,it.kind==='off'?0.85:0.65);
       iy+=it._h+k.sg;
     }
-    if(bar)dayBar(ctx,d,xTag,iy0+ih-k.barH+0.2*u,x0+rowW-k.pad-xTag-0.5*u,u,c);
+    if(bar)dayBar(ctx,d,xTag,iy0+ih-k.barH+0.2*u,rx+rowW-k.pad-xTag-0.5*u,u,c);
     OUTLINE=null;
     y+=RH+k.rg;
   }
-  // footer
-  OUTLINE=st.outline?autoInk(st.ink):null;
-  y+=k.footGap-k.rg;
-  if(st.plate){ctx.save();rr(ctx,x0-0.4*u,y-0.15*u,rowW+0.8*u,k.footH+0.3*u,0.3*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
-  const fb=y+0.34*u*1.15;
-  const lgW=mw(k.fFoot,M.legend);
-  T(ctx,M.legend,x0,fb,k.fFoot,rgba(st.ink,0.85));
-  T(ctx,ellip(k.fFoot,M.note,rowW-lgW-0.8*u),x0+rowW,fb,k.fFoot,rgba(st.ink,0.75),'right');
-  OUTLINE=null;
+  if(k.footH){
+    OUTLINE=st.outline?autoInk(st.ink):null;
+    y=top+k.bodyH+k.footGap;
+    if(st.plate){ctx.save();rr(ctx,x0-0.4*u,y-0.15*u,BW+0.8*u,k.footH+0.3*u,0.3*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
+    const fb=y+0.34*u*(HD.footScale/100)*1.15;
+    const lgW=M.legend?mw(k.fFoot,M.legend)+0.8*u:0;
+    if(M.legend)T(ctx,M.legend,x0,fb,k.fFoot,rgba(st.ink,0.85));
+    if(M.note)T(ctx,ellip(k.fFoot,M.note,BW-lgW),M.legend?x0+BW:(al==='center'?x0+BW/2:al==='right'?x0+BW:x0),fb,k.fFoot,rgba(st.ink,0.75),M.legend?'right':al);
+    OUTLINE=null;
+  }
   LAST.card={w:rowW,hs:[...new Set(k.rowHs.map(Math.round))].sort((a,b)=>a-b),kind:'list'};
   return L;
 }
@@ -1053,13 +1103,14 @@ function infoTile(ctx,M,x,y,w,h,u,draw){
   const st=S.style;
   const fit=v=>{
     const pad=0.5*v,iw=w-2*pad;
-    const fEy=F('b',0.4*v),fT=F('b',1.0*v),fR=F('num',0.62*v),fL=F('b',0.36*v),fN=F('reg',0.34*v);
+    const HD=S.head,ts=HD.titleScale/100,rs=HD.rangeScale/100,es=HD.subScale/100,fs=HD.footScale/100;
+    const fEy=F('b',0.4*v*es),fT=F('b',1.0*v*ts),fR=F('num',0.62*v*rs),fL=F('b',0.36*v*fs),fN=F('reg',0.34*v*fs);
     const tl=wrapText(fT,M.title,iw,2),nl=wrapText(fN,M.note,iw,3);
     const eh=M.eyebrow?0.4*v*1.6:0;
-    const body=eh+tl.length*1.0*v*1.12+0.25*v+0.62*v*1.3;
-    const foot=0.36*v*1.6+nl.length*0.34*v*1.45;
-    const ok=body+foot+0.5*v+2*pad<=h&&mw(fR,M.range)<=iw&&mw(fL,M.legend)<=iw&&(!M.eyebrow||mw(fEy,M.eyebrow)<=iw*1.4);
-    return{ok,pad,iw,fEy,fT,fR,fL,fN,tl,nl,eh,foot};
+    const body=eh+tl.length*1.0*v*ts*1.12+(M.showRange?0.25*v+0.62*v*rs*1.3:0);
+    const foot=(M.legend?0.36*v*fs*1.6:0)+nl.length*0.34*v*fs*1.45;
+    const ok=body+foot+0.5*v+2*pad<=h&&(!M.showRange||mw(fR,M.range)<=iw)&&mw(fL,M.legend)<=iw&&(!M.eyebrow||mw(fEy,M.eyebrow)<=iw*1.4);
+    return{ok,pad,iw,fEy,fT,fR,fL,fN,tl,nl,eh,foot,ts,rs,fs};
   };
   const v=bsearch(v=>fit(v).ok,u*0.5,u*1.7);
   if(!draw)return v;
@@ -1068,12 +1119,12 @@ function infoTile(ctx,M,x,y,w,h,u,draw){
   rr(ctx,x,y,w,h,st.radius/100*Math.min(w,h,3*u)/2);ctx.fillStyle=rgba(st.panel,Math.max(0.55,st.alpha/100));ctx.fill();ctx.restore();
   const ink=st.ink;let yy=y+g.pad;
   if(M.eyebrow){T(ctx,ellip(g.fEy,M.eyebrow,g.iw),x+g.pad,yy+0.4*v,g.fEy,rgba(ink,0.7));yy+=g.eh}
-  for(const l of g.tl){T(ctx,l,x+g.pad,yy+1.0*v*0.92,g.fT,ink);yy+=1.0*v*1.12}
-  yy+=0.25*v;T(ctx,M.range,x+g.pad,yy+0.62*v,g.fR,rgba(ink,0.9));
-  ctx.fillStyle=S.days[0].c.b;ctx.fillRect(x+g.pad,yy+0.62*v*1.3+0.12*v,1.6*v,0.1*v);
+  for(const l of g.tl){T(ctx,l,x+g.pad,yy+1.0*v*g.ts*0.92,g.fT,ink);yy+=1.0*v*g.ts*1.12}
+  if(M.showRange){yy+=0.25*v;T(ctx,M.range,x+g.pad,yy+0.62*v*g.rs,g.fR,rgba(ink,0.9));
+  ctx.fillStyle=bandColor(0);ctx.fillRect(x+g.pad,yy+0.62*v*g.rs*1.3+0.12*v,1.6*v,0.1*v)}
   let fy=y+h-g.pad-g.foot;
-  T(ctx,M.legend,x+g.pad,fy+0.36*v,g.fL,rgba(ink,0.85));fy+=0.36*v*1.6;
-  for(const l of g.nl){T(ctx,l,x+g.pad,fy+0.34*v,g.fN,rgba(ink,0.7));fy+=0.34*v*1.45}
+  if(M.legend){T(ctx,M.legend,x+g.pad,fy+0.36*v*g.fs,g.fL,rgba(ink,0.85));fy+=0.36*v*g.fs*1.6}
+  for(const l of g.nl){T(ctx,l,x+g.pad,fy+0.34*v*g.fs,g.fN,rgba(ink,0.7));fy+=0.34*v*g.fs*1.45}
 }
 function drawGrid(ctx,M,R,W,H){
   const gap=0.016*W,cols=4;
@@ -1208,7 +1259,17 @@ function tabSched(){
     <p class="hint">日曜はじまりの1週間です。<b>${esc(tzAbbr(S.tz.a,Date.now()))}</b>の時刻を入れると${S.tz.b.on?`<b>${esc(tzAbbr(S.tz.b,Date.now()))}</b>が自動で入ります（逆も可）。`:'表示されます。'}開始・終了とも空欄（--:--）でもOK。下のボタンでよく使う時間をワンタップ追加、各枠の「よく使う時間から入れる」で入れ替えもできます。</p>
   </div><div class="list" id="days">`;
   for(let i=0;i<7;i++)h+=dayHtml(i);
-  h+=`</div><div class="row"><button class="btn sm ghost danger" data-act="clearall">すべての予定をクリア</button></div>`;
+  h+=`</div><div class="row"><button class="btn sm" data-act="copyprev">前の週の予定をコピー</button><button class="btn sm ghost danger" data-act="clearall">この週の予定をクリア</button></div>`;
+  storeWeekView();
+  const list=Object.keys(S.weeks).concat(weekEmpty(packWeek())?[]:[S.weekStart]).filter((v,i,a)=>a.indexOf(v)===i).sort().reverse();
+  const tw=sundayOf(new Date());
+  h+=`<div class="grp"><h3>週の記録 <span class="en">ARCHIVE</span></h3>
+    <p class="hint">週を切り替えると、その週の予定は自動で保存されます。過去の週を振り返ったり、先の週の予定を前もって作っておけます（デザインは全週共通）。</p>
+    ${list.length?`<div class="list">${list.map(w=>{const src=w===S.weekStart?packWeek():S.weeks[w].days;const n=src.reduce((a,d)=>a+d.slots.length,0),off=src.filter(d=>d.off).length;
+      const tag=w===tw?'今週':w<tw?'過去':'これから';
+      return`<div class="wkrow ${w===S.weekStart?'cur':''}"><span class="wk-tag ${w<tw?'past':w===tw?'now':'future'}">${tag}</span><b>${weekLabel(w)}</b><span class="hint">配信 ${n}枠${off?`・お休み ${off}日`:''}</span>
+      ${w===S.weekStart?'<span class="hint">表示中</span>':`<button class="btn sm" data-act="gowk" data-w="${w}">開く</button>`}<button class="x" data-act="delwk" data-w="${w}" aria-label="この週の記録を削除">×</button></div>`}).join('')}</div>`:'<p class="hint">まだ記録はありません。</p>'}
+  </div>`;
   return h;
 }
 function dayHtml(i){
@@ -1485,8 +1546,18 @@ function tabLayout(){
   if(L.mode==='land-full')h+=`<label class="field"><span>並べ方</span>${seg('layout.landFull',[['grid','タイル（4×2）'],['list','リスト（7行）']],L.landFull)}</label>`;
   if(avOn)h+=rangeRow('アバターの幅','layout.avatar',20,60,1,'%')+check('アバター用の場所をプレビューに表示','layout.guide');
   if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<label class="field"><span>枠の幅</span>${seg('layout.width',[['fit','内容に合わせる（7日とも最大幅にそろえる）'],['fill','エリアいっぱい']],L.width)}</label>
+    <label class="field"><span>列の数</span>${seg('layout.cols',[[1,'1列（縦に7日）'],[2,'2列（左右に分けて配置）']],L.cols||1)}</label>
     <label class="field"><span>枠の高さ</span>${seg('layout.rowH',[['auto','予定の数に合わせる（文字が大きくなる）'],['equal','7日ともそろえる']],L.rowH)}</label>`;
-  h+=`</div><div class="grp"><h3>時刻の並べ方 <span class="en">TIME</span></h3>
+  if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<p class="hint">横長の画像で左右が余るときは「2列」にすると、日曜〜水曜を左、木曜〜土曜を右に並べ、余った高さを使って1日の枠を高くします。文字をもっと大きくしたいときは、下の「時刻の並べ方」を「上下に並べる」にすると横幅に余裕ができます。</p>`;
+  const HD=S.head;
+  h+=`</div><div class="grp"><h3>見出しと文字の大きさ <span class="en">HEADING</span></h3>
+    <div class="row"><label class="field"><span>タイトル（日本語）</span><input type="text" data-bind="title.ja" id="h-tja" value="${esc(S.title.ja)}"></label><label class="field"><span>Title (English)</span><input type="text" data-bind="title.en" id="h-ten" value="${esc(S.title.en)}"></label></div>
+    <label class="field"><span>見出しの位置</span>${seg('head.align',[['left','左'],['center','中央'],['right','右']],HD.align)}</label>
+    <label class="field"><span>日付範囲（2026.10.18 – 10.24）の位置</span>${seg('head.rangePos',[['right','タイトルの右'],['below','タイトルの下']],HD.rangePos)}</label>
+    ${rangeRow('タイトル','head.titleScale',40,200,1,'%')}${rangeRow('小見出し','head.subScale',50,200,1,'%')}${rangeRow('日付範囲','head.rangeScale',50,200,1,'%')}${rangeRow('注意書き','head.footScale',50,200,1,'%')}${rangeRow('予定の文字','head.bodyScale',40,100,1,'%')}
+    <div class="row">${check('小見出し（チャンネル名など）','head.showEyebrow')}${check('日付範囲','head.showRange')}${check('タイムゾーン表記','head.showLegend')}${check('注意書き','head.showNote')}</div>
+    <p class="hint">「予定の文字」は自動で決まる最大サイズに対する割合です（100%＝入る限り最大）。見出しを大きくすると、そのぶん予定の文字は自動で小さくなります。</p></div>
+  <div class="grp"><h3>時刻の並べ方 <span class="en">TIME</span></h3>
     ${S.tz.b.on?`<label class="field"><span>2つのタイムゾーンの並べ方</span>${seg('time.arrange',[['inline','横に並べる'],['stack','上下に並べる']],S.time.arrange)}</label>
     <label class="field"><span>横並びのときの揃え方（表記・日付の位置）</span>${seg('time.align',[['top','上揃え'],['middle','中央揃え'],['bottom','下揃え']],S.time.align,S.time.arrange!=='inline'?'disabled':'')}</label>
     <label class="field"><span>開始時刻が未定のとき</span>${seg('time.tbdStart',[['dash','--:-- と書く'],['text',S.lang==='en'?'TBA と書く':'「未定」と書く'],['whole',S.lang==='en'?'TBA（1語で）':'「時間未定」とまとめて書く']],S.time.tbdStart)}</label>
@@ -1534,6 +1605,8 @@ function tabSettings(){
   S.presets.forEach((p,k)=>{h+=`<div class="prow" data-pre="${k}"><input type="time" data-pf="t" value="${p.t}" aria-label="開始時刻"><input type="time" data-pf="e" value="${p.e||''}" aria-label="終了時刻（任意）"><select class="psel" data-pf="tag" aria-label="タグ">${tagOptions(p.tag)}</select><input class="pt" type="text" data-pf="title" value="${esc(p.title)}" placeholder="タイトル（任意）" aria-label="タイトル"><button class="btn sm pall" data-act="preall" title="お休み以外の全日に追加">全日に追加</button><button class="x" data-act="delpre" aria-label="削除">×</button></div>`});
   h+=`</div><div class="row"><button class="btn sm" data-act="addpre">＋ 時間を追加</button></div><p class="hint">ここに登録した時間（最初は --:--〜--:--。開始・終了とも空欄でもOK）は［予定］タブの各曜日に「21:00〜23:00 1st」のようなボタンで並び、ワンタップで追加できます。各枠の「よく使う時間から入れる」でも選べて、入れたあとも自由に変更できます。</p></div>
   <div class="grp"><h3>アプリの表示 <span class="en">APP</span></h3>
+    <label class="field"><span>アプリ（Webページ）の名前</span><input type="text" id="appName" value="${esc(appName())}" placeholder="Stream Week"></label>
+    <p class="hint">画面左上とブラウザのタブに表示される名前です。ホーム画面のアイコン名は、追加するときの画面で変更できます。</p>
     ${seg('_theme',[['system','端末に合わせる'],['dark','ダーク'],['light','ライト']],themePref())}
     <div class="row"><button class="btn sm ghost danger" data-act="resetall">すべて初期状態に戻す</button></div></div>`;
   return h;
@@ -1763,15 +1836,23 @@ modal.addEventListener('click',async e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeModal();if(e.key==='Enter'&&e.target.id==='ptagInput'&&!e.isComposing){e.preventDefault();addPostTag()}});
 let toastT=0;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function appName(){try{return localStorage.getItem(APP_KEY+'-appname')||'Stream Week'}catch(e){return'Stream Week'}}
+function applyAppName(){const n=appName();const b=document.querySelector('.logo b');if(b)b.textContent=n;document.title=n;const m=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(m)m.content=n}
 function themePref(){try{return localStorage.getItem(APP_KEY+'-theme')||'system'}catch(e){return'system'}}
 function applyTheme(v){if(v==='system')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);try{localStorage.setItem(APP_KEY+'-theme',v)}catch(e){}}
-applyTheme(themePref());
+applyTheme(themePref());applyAppName();
 
 /* =========================================================
    events
    ========================================================= */
 function changed(rerender){save();schedule();if(rerender)renderTab()}
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;TAB=b.dataset.tab;try{localStorage.setItem(APP_KEY+'-tab',TAB)}catch(err){}renderTab();body.scrollIntoView?.({block:'nearest'})});
+const tabsEl=document.querySelector('.tabs'),panelEl=document.querySelector('.panel');
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;TAB=b.dataset.tab;try{localStorage.setItem(APP_KEY+'-tab',TAB)}catch(err){}renderTab();
+  if(tabsEl.classList.contains('in-stage')){const st=document.getElementById('stage');const target=panelEl.getBoundingClientRect().top+scrollY-st.getBoundingClientRect().bottom+4;if(scrollY>target)scrollTo({top:Math.max(0,target)})}
+  b.scrollIntoView?.({block:'nearest',inline:'center'})});
+const mqMobile=matchMedia('(max-width:900px)');
+function placeTabs(){const st=document.getElementById('stage');if(mqMobile.matches){if(tabsEl.parentElement!==st){st.appendChild(tabsEl);tabsEl.classList.add('in-stage')}}else if(tabsEl.parentElement!==panelEl){panelEl.prepend(tabsEl);tabsEl.classList.remove('in-stage')}}
+placeTabs();mqMobile.addEventListener?.('change',placeTabs);
 function onSeg(b){
   const k=b.dataset.seg;let v=b.dataset.v;
   if(k==='_theme'){applyTheme(v);renderTab();return}
@@ -1802,6 +1883,7 @@ body.addEventListener('input',e=>{
   if(tagEl&&el.dataset.tg){const t=S.tags[+tagEl.dataset.tag];t[el.dataset.tg]=el.value;const p=tagEl.querySelector('.pill');if(p){p.style.background=t.color;p.style.color=autoInk(t.color);if(!t.off)p.textContent=t.name||'TAG'}save();schedule();return}
   const preEl=el.closest('[data-pre]');
   if(preEl&&el.dataset.pf&&el.type==='text'){S.presets[+preEl.dataset.pre][el.dataset.pf]=el.value;save();return}
+  if(el.id==='appName'){try{localStorage.setItem(APP_KEY+'-appname',el.value.trim())}catch(err){}applyAppName();return}
   if(el.id==='postText'){postText=el.value;postDirty=true;updateCount();return}
   if(el.id==='postCustom'){S.post.custom=el.value;postDirty=false;save();refreshPost();return}
   const urlEl=el.closest('[data-url]');
@@ -1822,7 +1904,7 @@ body.addEventListener('change',async e=>{
   {const urlEl=el.closest('[data-url]');if(urlEl&&el.dataset.uf&&el.dataset.uf!=='url'){const u=S.post.urls[+urlEl.dataset.url];u[el.dataset.uf]=el.type==='checkbox'?el.checked:el.value;postDirty=false;save();refreshPost();return}}
   if(el.id==='postDay'){S.post.day=+el.value;postDirty=false;save();refreshPost();return}
   if(el.id==='restoreFile'){const f=el.files&&el.files[0];if(f)importBackup(f);el.value='';return}
-  if(el.id==='weekDate'){if(el.value){const[y,m,d]=el.value.split('-').map(Number);S.weekStart=sundayOf(new Date(y,m-1,d));postDirty=false;changed(true)}return}
+  if(el.id==='weekDate'){if(el.value){const[y,m,d]=el.value.split('-').map(Number);switchWeek(sundayOf(new Date(y,m-1,d)))}return}
   if(el.dataset.tz){const tz=S.tz[el.dataset.tz];tz[el.dataset.tf]=el.value;if(el.dataset.tf==='zone')tz.label='';postDirty=false;changed(true);return}
   const dayEl=el.closest('[data-day]'),slotEl=el.closest('[data-slot]');
   if(dayEl&&el.dataset.dcb){renderTab();return}
@@ -1855,7 +1937,12 @@ body.addEventListener('click',async e=>{
   const a=e.target.closest('[data-act]');if(!a||a.disabled)return;
   const act=a.dataset.act;const dayEl=a.closest('[data-day]');const i=dayEl?+dayEl.dataset.day:-1;
   switch(act){
-    case'week':{const[y,m,d]=S.weekStart.split('-').map(Number);S.weekStart=ymd(new Date(y,m-1,d+ +a.dataset.d));postDirty=false;changed(true);break}
+    case'week':switchWeek(addDaysStr(S.weekStart,+a.dataset.d));break;
+    case'gowk':switchWeek(a.dataset.w);scrollTo({top:0});break;
+    case'delwk':if(await confirmBox('この週の記録を削除しますか？',weekLabel(a.dataset.w)+' の予定が消えます。','削除する')){delete S.weeks[a.dataset.w];changed(true)}break;
+    case'copyprev':{const pw=addDaysStr(S.weekStart,-7);storeWeek();const src=S.weeks[pw];if(!src){toast('前の週の予定がありません');break}
+      if(!weekEmpty(packWeek())&&!(await confirmBox('前の週の予定をコピーしますか？','この週に入っている予定は置き換わります。','コピーする')))break;
+      S.days.forEach((d,i)=>{const x=src.days[i];d.off=x.off;d.offNote=x.offNote;d.offNoteEn=x.offNoteEn;d.slots=clone(x.slots)});postDirty=false;changed(true);toast('前の週の予定をコピーしました');break}
     case'resetwk':resetWeekdayColors();changed(true);toast('曜日ラベルの色を初期化しました（戻るボタンで元に戻せます）');break;
     case'resetdays':resetDayColors();resetWeekdayColors();changed(true);toast('1日ごとの色を初期化しました（戻るボタンで元に戻せます）');break;
     case'dcauto':S.days[i].dc='';changed(true);break;
@@ -1881,11 +1968,11 @@ body.addEventListener('click',async e=>{
     case'bgal':alignBg(a.dataset.ax,+a.dataset.v);save();schedule();syncBgInputs();break;
     case'bgfromimg':{const inf=bgInfo();if(inf){Object.assign(S.style,{bg1:inf.top,bg2:inf.bottom,bgType:'vgrad'});S.style.palette='custom';changed(true);toast('画像から背景色を作りました')}break}
     case'weekpick':try{a.showPicker&&a.showPicker()}catch(err){}break;
-    case'thisweek':S.weekStart=sundayOf(new Date());postDirty=false;changed(true);break;
+    case'thisweek':switchWeek(sundayOf(new Date()));break;
     case'preset':{const p=S.presets[+a.dataset.p];if(S.days[i].slots.length>=3)break;S.days[i].slots.push({tag:p.tag,t:p.t,e:p.e||'',title:p.title||'',titleEn:p.titleEn||''});postDirty=false;save();schedule();rerenderDay(i);break}
     case'addslot':if(S.days[i].slots.length<3){S.days[i].slots.push({tag:'',t:'',e:'',title:'',titleEn:''});save();schedule();rerenderDay(i)}break;
     case'delslot':{const j=+a.closest('[data-slot]').dataset.slot;S.days[i].slots.splice(j,1);postDirty=false;save();schedule();rerenderDay(i);break}
-    case'clearall':if(await confirmBox('すべての予定をクリアしますか？','7日分の時間・タイトル・お休み設定が消えます。デザインは残ります。','クリアする')){S.days.forEach(d=>{d.slots=[];d.off=false;d.offNote='';d.offNoteEn=''});postDirty=false;changed(true)}break;
+    case'clearall':if(await confirmBox('この週の予定をクリアしますか？','表示中の週の時間・タイトル・お休み設定が消えます。ほかの週とデザインは残ります。','クリアする')){S.days.forEach(d=>{d.slots=[];d.off=false;d.offNote='';d.offNoteEn=''});delete S.weeks[S.weekStart];postDirty=false;changed(true)}break;
     case'pal':applyPalette(a.dataset.id);changed(true);break;
     case'autopal':autoPalette($('#autoColor').value,a.dataset.tone);changed(true);break;
     case'rmimg':await removeImage(a.dataset.k);renderTab();schedule();break;
@@ -1996,7 +2083,7 @@ async function openNew(){
     ${a.some(Boolean)?`<div class="starters">${a.map((sl,i)=>sl?`<button class="starter" data-act="pickstart" data-type="slot" data-id="${i}" aria-pressed="${NEWSRC.type==='slot'&&NEWSRC.id===i}"><img src="${sl.thumb}" alt=""><span>${i+1}. ${esc(sl.name)}</span></button>`:'').join('')}</div>`:'<p class="hint">保存した作品はまだありません。セーブスロットに保存すると、ここから選べます。</p>'}
     <div class="sub-h">オプション</div>
     <label class="check"><input type="checkbox" data-nopt="clear" ${NEWOPT.clear?'checked':''}> 予定を空にして今週から始める</label>
-    <label class="check"><input type="checkbox" data-nopt="keepSettings" ${NEWOPT.keepSettings?'checked':''}> タグ・よく使う時間・タイムゾーン・タイトル・投稿設定は今のまま使う</label>
+    <label class="check"><input type="checkbox" data-nopt="keepSettings" ${NEWOPT.keepSettings?'checked':''}> タグ・よく使う時間・タイムゾーン・タイトル・投稿設定・週の記録は今のまま使う</label>
     <label class="check"><input type="checkbox" data-nopt="keepImages" ${NEWOPT.keepImages?'checked':''}> 今の画像（背景・アバター・枠）をそのまま使う</label>
     <p class="hint">作り始める前の内容は、必要なら先にセーブスロットに保存してください。作成後も「戻る」で予定・デザインは元に戻せます。</p>
     <div class="acts"><button class="btn" data-act="openslots">スロットへ戻る</button><button class="btn primary" data-act="startnew">この内容で作る</button></div>`;
@@ -2006,6 +2093,7 @@ async function openNew(){
 }
 let NEWHTML=null;
 async function startNew(){
+  storeWeek();const keptWeeks=clone(S.weeks);
   const keep=clone({tags:S.tags,presets:S.presets,tz:S.tz,post:S.post,channel:S.channel,title:S.title,note:S.note,lang:S.lang,wdStyle:S.wdStyle});
   let st;
   if(NEWSRC.type==='slot'){const sl=getSlots()[NEWSRC.id];if(!sl)return;st=normalize(clone(sl.state))}else{st=defaultState();STARTERS[NEWSRC.id].f(st)}
@@ -2016,6 +2104,7 @@ async function startNew(){
   else if(NEWSRC.type==='slot'){await copySlotImages(NEWSRC.id,st)}
   else{for(const k of imgKeys()){delete IMG[k];await DB.del(k)}st.img={bg:false,frameAll:false,avatar:false,frame:Array(7).fill(false)};IMGV++}
   S=normalize(st);for(const k of imgKeys())if(hasImg(k)&&!IMG[k])setHas(k,false);
+  if(NEWOPT.keepSettings){S.weeks=keptWeeks;if(NEWOPT.clear)loadWeek(sundayOf(new Date()))}
   setCurSlot(-1);postDirty=false;save();TAB='sched';renderTab();schedule();closeModal();toast('新しく作りました。保存はセーブスロットから');
 }
 dialog.addEventListener('change',e=>{
@@ -2048,7 +2137,7 @@ document.addEventListener('keydown',e=>{
 $('#btnPng').addEventListener('click',exportPng);
 $('#btnX').addEventListener('click',()=>{TAB='share';renderTab();setTimeout(()=>$('#postText')?.scrollIntoView({block:'center',behavior:'smooth'}),30)});
 $('#btnInstall').addEventListener('click',doInstall);
-const stage=$('#stage');const sizes=['','small','hide'],sizeLbl=['プレビュー：大','プレビュー：小','プレビュー：隠す'];let sz=0;
+const stage=$('#stage');const sizes=['','small','hide'],sizeLbl=['表示：中','表示：小','表示：隠す'];let sz=0;
 $('#btnCollapse').addEventListener('click',()=>{stage.classList.remove(sizes[sz]);sz=(sz+1)%3;if(sizes[sz])stage.classList.add(sizes[sz]);$('#btnCollapse').textContent=sizeLbl[sz]});
 if(isStandalone())$('#btnInstall').hidden=true;
 
