@@ -176,6 +176,7 @@ input[type=time]::-webkit-datetime-edit{padding:0}
 .tt > span{font:700 10.5px/1.2 var(--f-num);letter-spacing:.08em;color:var(--muted)}
 .tt.b > span{color:var(--sub)}
 .tt small{font-size:10.5px;color:var(--warn);line-height:1.2;min-height:1.2em}
+.slot-head.three{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) 34px}
 .slot-head{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:6px;align-items:center}
 .times{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 .times.one{grid-template-columns:minmax(0,1fr)}
@@ -409,6 +410,11 @@ function zoneName(z){for(const[,list]of ZONES)for(const[id,n]of list)if(id===z)r
 /* =========================================================
    state
    ========================================================= */
+function sampleDays(st){
+  const sl=(tag,t,e,title,titleEn)=>({tag,t,e,title,titleEn});
+  const x=[[sl('t1','21:00','23:00','雑談','Just Chatting')],'off',[sl('t1','21:00','22:30','ゲーム実況','Gaming'),sl('t2','23:30','','歌枠','Karaoke')],[sl('tco','20:00','22:00','コラボ配信','Collab Stream')],'off',[sl('t1','22:00','','耐久配信','Endurance Stream')],[sl('tev','12:00','14:00','記念イベント','Anniversary Event'),sl('t2','21:00','22:00','マシュマロ読み','Q&A')]];
+  st.days.forEach((d,i)=>{d.off=x[i]==='off';d.slots=x[i]==='off'?[]:x[i]});return st;
+}
 function defaultState(){
   const P=PALETTES.sunday;
   const tags=[
@@ -416,23 +422,15 @@ function defaultState(){
     {id:'tev',name:'EVENT',color:'#ff9f1a'},{id:'tco',name:'COLLAB',color:'#8b5cf6'},
     {id:'toff',name:'OFF',color:'#9aa0b4',off:true}];
   const sl=(tag,t,e,title,titleEn)=>({tag,t,e,title,titleEn});
-  const days=[
-    [sl('t1','21:00','23:00','雑談','Just Chatting')],
-    'off',
-    [sl('t1','21:00','22:30','ゲーム実況','Gaming'),sl('t2','23:30','','歌枠','Karaoke')],
-    [sl('tco','20:00','22:00','コラボ配信','Collab Stream')],
-    'off',
-    [sl('t1','22:00','','耐久配信','Endurance Stream')],
-    [sl('tev','12:00','14:00','記念イベント','Anniversary Event'),sl('t2','21:00','22:00','マシュマロ読み','Q&A')],
-  ].map((x,i)=>({off:x==='off',offNote:'',offNoteEn:'',slots:x==='off'?[]:x,c:clone(P.days[i])}));
+  const days=Array.from({length:7},(_,i)=>({off:false,offNote:'',offNoteEn:'',slots:[],c:clone(P.days[i])}));
   return{
     v:1,weekStart:sundayOf(new Date()),lang:'both',
     title:{ja:'今週の配信予定',en:'WEEKLY SCHEDULE'},channel:'',
     note:{ja:'※予定は変更になる場合があります',en:'*Schedule is subject to change.'},
     tz:{a:{zone:'Asia/Tokyo',label:'',dst:'auto'},b:{on:true,zone:'UTC',label:'',dst:'auto'},paren:true},
-    time:{arrange:'inline',align:'bottom',over24:false,bar:true,dur:true},wdStyle:'en',
+    time:{arrange:'inline',align:'bottom',over24:false,bar:true,dur:true,tbdStart:'dash',tbdEnd:'dash',tbdV:2},wdStyle:'en',
     tags,
-    presets:[{id:'p1',t:'21:00',e:'23:00',tag:'t1',title:'',titleEn:''},{id:'p2',t:'23:00',e:'',tag:'t2',title:'',titleEn:''},{id:'p3',t:'12:00',e:'',tag:'tev',title:'',titleEn:''},{id:'p4',t:'20:00',e:'',tag:'tco',title:'',titleEn:''}],
+    presets:[{id:'p1',t:'',e:'',tag:'t1',title:'',titleEn:''},{id:'p2',t:'',e:'',tag:'t2',title:'',titleEn:''},{id:'p3',t:'',e:'',tag:'tev',title:'',titleEn:''},{id:'p4',t:'',e:'',tag:'tco',title:'',titleEn:''}],presetV:2,
     days,
     style:{palette:'sunday',font:'mplus',num:'outfit',radius:36,border:3,alpha:P.alpha,outline:false,shadow:true,band:true,plate:false,
       ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],bgType:'grad',bgDots:true,bgSrc:'color',bgFill:'edge',dim:0,dimColor:'#000000',bgScale:100,bgX:50,bgY:50,frameUnder:false,frameFit:'stretch',holOn:true,sunColor:'',satColor:'',holColor:'',wkColor:'',bandFix:true},
@@ -453,6 +451,8 @@ function normalize(s){
   if(!Array.isArray(s.days)||s.days.length!==7)s.days=d.days;
   s.days=s.days.map((x,i)=>({dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
   if(!s.tags.length)s.tags=d.tags;
+  if(s.presetV!==2){const old={p1:['21:00','23:00'],p2:['23:00',''],p3:['12:00',''],p4:['20:00','']};s.presets.forEach(p=>{const o=old[p.id];if(o&&p.t===o[0]&&(p.e||'')===o[1]){p.t='';p.e=''}});s.presetV=2}
+  if(s.time.tbdV!==2){s.time.tbdStart='dash';s.time.tbdEnd='dash';s.time.tbdV=2}
   s.presets=(s.presets||[]).map(p=>({e:'',...p}));
   if(!Array.isArray(s.post.tags))s.post.tags=[];if(!s.post.tags.length&&s.post.hashtags)s.post.tags=s.post.hashtags.split(/\s+/).filter(Boolean).map(t=>({t:t.startsWith('#')?t:'#'+t,on:true}));if(!Array.isArray(s.post.urls))s.post.urls=[];
   if(s.img.bg&&!src_has(s,'bgSrc'))s.style.bgSrc='image';
@@ -596,6 +596,7 @@ function accent(hue){const light=lum(neighborOf(1))>0.3;const[,ps]=hex2hsl(S.day
 function autoBand(i){const st=S.style,k=dayKind(i);const base=st.wkColor||autoWeekday();
   if(k==='sun')return st.sunColor||accent(356);if(k==='sat')return st.satColor||accent(218);if(k==='hol')return st.holColor||st.sunColor||accent(356);return base}
 function bandColor(i){const c=S.days[i].dc||autoBand(i);return S.style.bandFix?ensureVis(c,neighborOf(i),2.2):c}
+function undStr(m){return m==='dash'?'--:--':m==='text'?(S.lang==='en'?'TBA':'未定'):''}
 function wdS(dow){return S.wdStyle==='ja'?WD_JA[dow]:S.wdStyle==='both'?WD_EN[dow]+'・'+WD_JA[dow]:WD_EN[dow]}
 function fmtDur(m){if(!(m>0))return'';const h=Math.floor(m/60),mm=m%60;return(h?h+'h':'')+(mm?pad2(mm).replace(/^0/,'')+'m':'')}
 function buildModel(){
@@ -609,13 +610,18 @@ function buildModel(){
       if(!sl.length){const tp=txtPair('','', '未定','TBA');it.push({kind:'empty',...tp})}
       for(const s of sl){
         const tag=tagById(s.tag);const tp=txtPair(s.title,s.titleEn,'','');
-        if(!s.t){it.push({kind:'slot',tag,tba:true,p:L==='ja'?'時間未定':'TBA',ps:'',pe:'',pl:'',du:'',s2:null,...tp});continue}
+        if(!s.t){
+          if(S.time.tbdStart!=='whole'){const u0=startUtc(i,'12:00');const und0=undStr(S.time.tbdStart);const pe=s.e?s.e:undStr(S.time.tbdEnd);
+            const s2=B.on?{ts:und0,te:s.e?convertEnd(i,'',s.e).str:undStr(S.time.tbdEnd),t:'',l:fmtLabel(tzAbbr(B,u0)),pre:''}:null;if(s2)s2.t=s2.ts+(s2.te?'–'+s2.te:'');
+            it.push({kind:'slot',tag,und:true,ps:und0,pe,p:und0+(pe?'–'+pe:''),pl:fmtLabel(tzAbbr(A,u0)),du:'',s2,bs:0,be:null,...tp})}
+          else it.push({kind:'slot',tag,tba:true,p:L==='en'?'TBA':'時間未定',ps:'',pe:'',pl:'',du:'',s2:null,...tp});
+          continue}
         const u=startUtc(i,s.t);
         let s2=null;
-        if(B.on){const c=convert(i,s.t);const te=s.e?convertEnd(i,s.t,s.e).str:'';
+        if(B.on){const c=convert(i,s.t);const te=s.e?convertEnd(i,s.t,s.e).str:undStr(S.time.tbdEnd);
           s2={ts:c.t2,te,t:c.t2+(te?'–'+te:''),l:fmtLabel(tzAbbr(B,u)),pre:c.diff?prefixStr(c.w):''};
           secDates.set(Date.UTC(c.w.y,c.w.mo,c.w.d),c.w);secLabel=s2.l}
-        const pe=s.e?endPrimaryStr(s.t,s.e):'';
+        const pe=s.e?endPrimaryStr(s.t,s.e):undStr(S.time.tbdEnd);
         const dur=s.e?Math.round((endUtc(i,s.t,s.e)-u)/6e4):0;
         const sh=hm(s.t),eh=s.e?hm(s.e):null;
         it.push({kind:'slot',tag,ps:s.t,pe,p:s.t+(pe?'–'+pe:''),pl:fmtLabel(tzAbbr(A,u)),du:S.time.dur?fmtDur(dur):'',s2,
@@ -629,7 +635,7 @@ function buildModel(){
       const a=ws[0],b=ws[ws.length-1];
       sec=ws.length===1?{d:`${a.mo+1}/${a.d}`,w:`(${wdS(a.dow)})`,l:secLabel}:{d:`${a.mo+1}/${a.d}–${b.mo===a.mo?b.d:(b.mo+1)+'/'+b.d}`,w:`(${wdS(a.dow)}–${wdS(b.dow)})`,l:secLabel};
     }
-    days.push({i,dt,date:`${dt.mo+1}/${dt.d}`,wd:`(${wdS(dt.dow)})`,sec,c:day.c,items:it,hasTime:it.some(x=>x.kind==='slot'&&!x.tba)});
+    days.push({i,dt,date:`${dt.mo+1}/${dt.d}`,wd:`(${wdS(dt.dow)})`,sec,c:day.c,items:it,hasTime:it.some(x=>x.kind==='slot'&&!x.tba&&!x.und)});
   }
   const ms=wallToUtc(A,dayDate(0).y,dayDate(0).mo,dayDate(0).d,12,0);
   const legend=[tzAbbr(A,ms)].concat(B.on?[tzAbbr(B,ms)]:[]).join(' / ');
@@ -833,7 +839,7 @@ function pill(ctx,x,cy,tag,k){
   rr(ctx,x,cy-k.pillH/2,tw,k.pillH,k.pillH/2);ctx.fillStyle=tag.color;ctx.fill();
   T(ctx,tag.name,x+tw/2,cy,k.fTag,autoInk(tag.color),'center','middle',null);
 }
-function rangeW(f,a,b){return mw(f,a)+(b?mw(f,'–')+mw(f,b):0)}
+function rangeW(f,a,b){return mw(f,a)+(b?mw(f,sepOf(a,b))+mw(f,b):0)}
 function timeCols(k,M,stack){
   k.stack=stack;k.tGap=0.6*k.u;let pW=0,sW=0,tba=0;
   for(const d of M.days)for(const it of d.items){
@@ -845,7 +851,9 @@ function timeCols(k,M,stack){
   k.pW=pW;k.preW=0;k.sW=sW;
   k.timeColW=Math.max(tba,stack?Math.max(pW,sW):pW+(sW?k.tGap+sW:0));
 }
-function drawRange(ctx,a,b,x,y,f,col){T(ctx,a,x,y,f,col);if(!b)return;x+=mw(f,a);T(ctx,'–',x,y,f,rgba(col,0.45));x+=mw(f,'–');T(ctx,b,x,y,f,col)}
+const isUnd=t=>t==='--:--'||t==='未定'||t==='TBA';
+function sepOf(a,b){return isUnd(a)||isUnd(b)?' 〜 ':'–'}
+function drawRange(ctx,a,b,x,y,f,col){T(ctx,a,x,y,f,isUnd(a)?rgba(col,0.42):col);if(!b)return;x+=mw(f,a);const sp=sepOf(a,b);T(ctx,sp,x,y,f,rgba(col,0.45));x+=mw(f,sp);T(ctx,b,x,y,f,isUnd(b)?rgba(col,0.42):col)}
 function durChip(ctx,txt,x,yb,k,col){
   const w=mw(k.fDu,txt)+k.u*0.3,h=k.u*0.5,top=yb-asc(k.fP)/2-h/2;
   rr(ctx,x,top,w,h,h/2);ctx.fillStyle=rgba(col,0.1);ctx.fill();ctx.lineWidth=Math.max(1,k.u*0.035);ctx.strokeStyle=rgba(col,0.35);ctx.stroke();
@@ -873,7 +881,7 @@ function dayBar(ctx,d,x,y,w,u,c){
   const h=0.14*u;ctx.save();
   rr(ctx,x,y,w,h,h/2);ctx.fillStyle=rgba(c.t,0.12);ctx.fill();
   ctx.fillStyle=rgba(c.t,0.32);for(const t of[6,12,18]){const tx=x+w*t/24;ctx.fillRect(tx-u*0.015,y-h*0.5,u*0.03,h*2)}
-  for(const it of d.items){if(it.kind!=='slot'||it.tba)continue;const col=it.tag?it.tag.color:c.b;ctx.fillStyle=col;
+  for(const it of d.items){if(it.kind!=='slot'||it.tba||it.und)continue;const col=it.tag?it.tag.color:c.b;ctx.fillStyle=col;
     const x1=x+w*it.bs/24;
     if(it.be!=null){const x2=x+w*Math.min(24,it.be)/24;rr(ctx,x1,y-h*0.25,Math.max(h,x2-x1),h*1.5,h*0.75);ctx.fill();
       if(it.be>24){ctx.beginPath();ctx.moveTo(x+w+h*0.3,y-h*0.6);ctx.lineTo(x+w+h*1.4,y+h/2);ctx.lineTo(x+w+h*0.3,y+h*1.6);ctx.closePath();ctx.fill()}}
@@ -1197,7 +1205,7 @@ function tabSched(){
       <button class="btn sm" data-act="week" data-d="7" aria-label="次の週">▶</button>
       <button class="btn sm" data-act="thisweek">今週</button>
     </div>
-    <p class="hint">日曜はじまりの1週間です。<b>${esc(tzAbbr(S.tz.a,Date.now()))}</b>の時刻を入れると${S.tz.b.on?`<b>${esc(tzAbbr(S.tz.b,Date.now()))}</b>が自動で入ります（逆も可）。`:'表示されます。'}終了時刻は空欄でもOK。下の「＋」でよく使う時間をワンタップ追加できます。</p>
+    <p class="hint">日曜はじまりの1週間です。<b>${esc(tzAbbr(S.tz.a,Date.now()))}</b>の時刻を入れると${S.tz.b.on?`<b>${esc(tzAbbr(S.tz.b,Date.now()))}</b>が自動で入ります（逆も可）。`:'表示されます。'}開始・終了とも空欄（--:--）でもOK。下のボタンでよく使う時間をワンタップ追加、各枠の「よく使う時間から入れる」で入れ替えもできます。</p>
   </div><div class="list" id="days">`;
   for(let i=0;i<7;i++)h+=dayHtml(i);
   h+=`</div><div class="row"><button class="btn sm ghost danger" data-act="clearall">すべての予定をクリア</button></div>`;
@@ -1218,7 +1226,7 @@ function dayHtml(i){
       const durM=s.t&&s.e?Math.round((endUtc(i,s.t,s.e)-startUtc(i,s.t))/6e4):0;
       const overNote=[s.t&&s.e&&s.e<=s.t?'終了は翌日':'',durM?'配信 '+fmtDur(durM):''].filter(Boolean).join('・');
       h+=`<div class="slot" data-slot="${j}">
-        <div class="slot-head"><select data-sf="tag" aria-label="タグ">${tagOptions(s.tag)}</select><button class="x" data-act="delslot" aria-label="この枠を削除">×</button></div>
+        <div class="slot-head three"><select data-sf="tag" aria-label="タグ">${tagOptions(s.tag)}</select><select data-sf="preset" aria-label="よく使う時間から入れる"><option value="">よく使う時間から入れる…</option>${S.presets.map((p,k)=>{const t=tagById(p.tag);return`<option value="${k}">${p.t||'--:--'}〜${p.e||'--:--'}${t?' '+esc(t.name):''}${p.title?' '+esc(p.title):''}</option>`}).join('')}</select><button class="x" data-act="delslot" aria-label="この枠を削除">×</button></div>
         <div class="times ${S.tz.b.on?'':'one'}">
           <div class="tzb"><span>${esc(la)}　開始 〜 終了</span><div class="pair"><input type="time" data-sf="t" value="${s.t}" aria-label="${esc(la)}の開始時刻"><i>〜</i><input type="time" data-sf="e" value="${s.e}" aria-label="${esc(la)}の終了時刻"></div><small>${overNote}</small></div>
           ${S.tz.b.on?`<div class="tzb b"><span>${esc(lb)}　開始 〜 終了</span><div class="pair"><input type="time" data-sf="t2" value="${t2}" aria-label="${esc(lb)}の開始時刻"><i>〜</i><input type="time" data-sf="e2" value="${e2}" aria-label="${esc(lb)}の終了時刻"></div><small>${note}</small></div>`:''}
@@ -1227,8 +1235,8 @@ function dayHtml(i){
       </div>`;
     });
     const full=day.slots.length>=3;
-    h+=`<div class="chips">${S.presets.map((p,k)=>{const t=tagById(p.tag);return`<button class="chipbtn" data-act="preset" data-p="${k}" ${full?'disabled':''} style="--c:${t?t.color:'#888'}"><i></i>${p.t||'未定'}${p.e?'–'+p.e:''} ${t?esc(t.name):''}${p.title?' '+esc(p.title):''}</button>`}).join('')}
-      <button class="chipbtn" data-act="addslot" ${full?'disabled':''}>＋ 時間未定</button></div>`;
+    h+=`<div class="chips">${S.presets.map((p,k)=>{const t=tagById(p.tag);return`<button class="chipbtn" data-act="preset" data-p="${k}" ${full?'disabled':''} style="--c:${t?t.color:'#888'}"><i></i>${p.t||'--:--'}〜${p.e||'--:--'} ${t?esc(t.name):''}${p.title?' '+esc(p.title):''}</button>`}).join('')}
+      <button class="chipbtn" data-act="addslot" ${full?'disabled':''}>＋ 空の枠（--:--〜--:--）</button></div>`;
   }
   return h+'</article>';
 }
@@ -1481,6 +1489,8 @@ function tabLayout(){
   h+=`</div><div class="grp"><h3>時刻の並べ方 <span class="en">TIME</span></h3>
     ${S.tz.b.on?`<label class="field"><span>2つのタイムゾーンの並べ方</span>${seg('time.arrange',[['inline','横に並べる'],['stack','上下に並べる']],S.time.arrange)}</label>
     <label class="field"><span>横並びのときの揃え方（表記・日付の位置）</span>${seg('time.align',[['top','上揃え'],['middle','中央揃え'],['bottom','下揃え']],S.time.align,S.time.arrange!=='inline'?'disabled':'')}</label>
+    <label class="field"><span>開始時刻が未定のとき</span>${seg('time.tbdStart',[['dash','--:-- と書く'],['text',S.lang==='en'?'TBA と書く':'「未定」と書く'],['whole',S.lang==='en'?'TBA（1語で）':'「時間未定」とまとめて書く']],S.time.tbdStart)}</label>
+    <label class="field"><span>終了時刻が未定のとき</span>${seg('time.tbdEnd',[['dash','--:-- と書く'],['text',S.lang==='en'?'TBA と書く':'「未定」と書く'],['none','開始時刻だけ書く']],S.time.tbdEnd)}</label>
     ${check('日付をまたぐ終了時刻を「25:00」のように書く','time.over24')}
     ${check('配信の長さ（2h など）を時刻の横に表示','time.dur')}
     ${check('1日の時間帯バーを表示（0〜24時のどこで配信するかを色で表示）','time.bar')}
@@ -1522,7 +1532,7 @@ function tabSettings(){
   h+=`</div><div class="row"><button class="btn sm" data-act="addtag">＋ タグを追加</button></div><p class="hint">「1st」「2nd」「EVENT」などの名前と色は自由に変えられます。灰色の「お休み用」タグは、お休みの日に表示されます。</p></div>
   <div class="grp"><h3>よく使う時間 <span class="en">QUICK ADD</span></h3><div class="list">`;
   S.presets.forEach((p,k)=>{h+=`<div class="prow" data-pre="${k}"><input type="time" data-pf="t" value="${p.t}" aria-label="開始時刻"><input type="time" data-pf="e" value="${p.e||''}" aria-label="終了時刻（任意）"><select class="psel" data-pf="tag" aria-label="タグ">${tagOptions(p.tag)}</select><input class="pt" type="text" data-pf="title" value="${esc(p.title)}" placeholder="タイトル（任意）" aria-label="タイトル"><button class="btn sm pall" data-act="preall" title="お休み以外の全日に追加">全日に追加</button><button class="x" data-act="delpre" aria-label="削除">×</button></div>`});
-  h+=`</div><div class="row"><button class="btn sm" data-act="addpre">＋ 時間を追加</button></div><p class="hint">ここに登録した時間（終了は任意）は［予定］タブの各曜日に「21:00–23:00 1st」のようなボタンで並び、ワンタップで追加できます。</p></div>
+  h+=`</div><div class="row"><button class="btn sm" data-act="addpre">＋ 時間を追加</button></div><p class="hint">ここに登録した時間（最初は --:--〜--:--。開始・終了とも空欄でもOK）は［予定］タブの各曜日に「21:00〜23:00 1st」のようなボタンで並び、ワンタップで追加できます。各枠の「よく使う時間から入れる」でも選べて、入れたあとも自由に変更できます。</p></div>
   <div class="grp"><h3>アプリの表示 <span class="en">APP</span></h3>
     ${seg('_theme',[['system','端末に合わせる'],['dark','ダーク'],['light','ライト']],themePref())}
     <div class="row"><button class="btn sm ghost danger" data-act="resetall">すべて初期状態に戻す</button></div></div>`;
@@ -1824,6 +1834,7 @@ body.addEventListener('change',async e=>{
     else if(f==='t2'){s.t=el.value?backConvert(i,el.value):''}
     else if(f==='e2'){s.e=el.value?backEnd(i,s.t,el.value):''}
     else if(f==='tag'){s.tag=el.value}
+    else if(f==='preset'){if(el.value==='')return;const p=S.presets[+el.value];if(!p)return;s.t=p.t||'';s.e=p.e||'';if(p.tag)s.tag=p.tag;if(p.title&&!s.title)s.title=p.title;if(p.titleEn&&!s.titleEn)s.titleEn=p.titleEn;toast('よく使う時間を入れました（あとから自由に変更できます）')}
     else return;
     postDirty=false;save();schedule();if(f!=='tag')rerenderDay(i);return;
   }
@@ -1880,7 +1891,7 @@ body.addEventListener('click',async e=>{
     case'rmimg':await removeImage(a.dataset.k);renderTab();schedule();break;
     case'addtag':S.tags.splice(S.tags.findIndex(t=>t.off)>=0?S.tags.findIndex(t=>t.off):S.tags.length,0,{id:'t'+uid(),name:'NEW',color:hsl2hex(Math.random()*360,75,58)});changed(true);break;
     case'deltag':{const t=S.tags[+a.closest('[data-tag]').dataset.tag];S.tags=S.tags.filter(x=>x!==t);S.days.forEach(d=>d.slots.forEach(s=>{if(s.tag===t.id)s.tag=''}));S.presets.forEach(p=>{if(p.tag===t.id)p.tag=''});changed(true);break}
-    case'addpre':S.presets.push({id:'p'+uid(),t:'21:00',e:'',tag:S.tags[0]?.id||'',title:'',titleEn:''});changed(true);break;
+    case'addpre':S.presets.push({id:'p'+uid(),t:'',e:'',tag:S.tags[0]?.id||'',title:'',titleEn:''});changed(true);break;
     case'delpre':S.presets.splice(+a.closest('[data-pre]').dataset.pre,1);changed(true);break;
     case'preall':{const p=S.presets[+a.closest('[data-pre]').dataset.pre];let n=0;S.days.forEach(d=>{if(!d.off&&d.slots.length<3&&!d.slots.some(s=>s.t===p.t&&s.tag===p.tag)){d.slots.push({tag:p.tag,t:p.t,e:p.e||'',title:p.title||'',titleEn:p.titleEn||''});n++}});save();schedule();toast(n?`${n}日に追加しました`:'追加できる日がありません');break}
     case'resetall':if(await confirmBox('すべて初期状態に戻しますか？','予定・デザイン・画像がすべて消えます。','初期化する')){for(const k of imgKeys()){delete IMG[k];await DB.del(k)}S=defaultState();postDirty=false;changed(true)}break;
@@ -1974,7 +1985,7 @@ const STARTERS={
 };
 function applyPaletteTo(st,id){const keep=S;S=st;try{applyPalette(id)}finally{S=keep}}
 let NEWSRC={type:'tpl',id:'standard'},NEWOPT={clear:true,keepSettings:true,keepImages:true},STARTER_THUMBS={};
-function starterState(id){const st=defaultState();STARTERS[id].f(st);st.img=clone(S.img);return st}
+function starterState(id){const st=sampleDays(defaultState());STARTERS[id].f(st);st.img=clone(S.img);return st}
 async function openNew(){
   dialog.classList.add('wide');
   const a=getSlots();
