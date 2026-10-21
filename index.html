@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&family=Noto+Sans+JP:wght@500;900&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800&family=Rajdhani:wght@600;700&family=Yusei+Magic&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dela+Gothic+One&family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&family=Noto+Sans+JP:wght@500;900&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800&family=Rajdhani:wght@600;700&family=Yusei+Magic&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;900&family=Kosugi+Maru&family=RocknRoll+One&family=Reggae+One&family=Hachi+Maru+Pop&family=Mochiy+Pop+One&family=Kaisei+Decol:wght@400;700&family=Shippori+Mincho:wght@500;800&family=Kiwi+Maru:wght@400;500&family=Montserrat:wght@500;800&family=Poppins:wght@500;700&family=Pacifico&display=swap">
 <style>
 /* Layout: preview stage (left, sticky) + tabbed control desk (right). Phones stack them, stage stays pinned & collapsible. */
 :root{
@@ -69,7 +69,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .stage{position:sticky;top:calc(var(--top-h) + env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:10px;min-width:0}
 .canvas-box{display:flex;justify-content:center;align-items:center;background:
   repeating-conic-gradient(var(--surface) 0 25%, var(--surface-2) 0 50%) 0 0/18px 18px;border:1px solid var(--line);border-radius:var(--r);padding:10px;overflow:hidden}
-#cv{display:block;max-width:100%;max-height:calc(100vh - var(--top-h) - 150px);width:auto;height:auto;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#cv{cursor:pointer;display:block;max-width:100%;max-height:calc(100vh - var(--top-h) - 150px);width:auto;height:auto;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .stage-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .meta{font:600 12px/1.2 var(--f-num);color:var(--muted);letter-spacing:.06em}
 .chip-warn{font-size:12px;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:2px 10px}
@@ -144,6 +144,15 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .wkrow.cur{border-color:var(--accent)}.wkrow b{font:700 14px var(--f-num)}
 @media (max-width:480px){.wkrow{grid-template-columns:auto minmax(0,1fr) auto 34px}.wkrow > .hint:nth-of-type(1){grid-column:1/-1;grid-row:2}}
 .wk-tag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid currentColor}.wk-tag.now{color:var(--accent)}.wk-tag.past{color:var(--muted)}.wk-tag.future{color:var(--sub)}
+.fdet{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}.fdet summary{cursor:pointer;font-weight:700;font-size:13px}
+.froles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin:8px 0}
+.sprow{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.sprow:not(.on){grid-template-columns:1fr}.sprow.on{border-color:var(--accent)}
+@media (max-width:520px){.sprow.on{grid-template-columns:1fr 1fr}.sprow.on>label:first-child{grid-column:1/-1}}
+.flash{animation:flash 1.4s ease-out}@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.pf{border-radius:10px;padding:10px 12px;font-size:13px}.pf ul{margin:6px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.pf.warn{border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}.pf.ok{border:1px solid var(--ok);color:var(--ok)}
+.dialog .hint{white-space:pre-line}
 .avprev{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .avprev figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
 .avprev figcaption{font-size:11.5px;color:var(--muted)}
@@ -349,6 +358,14 @@ const FONTS={
   dela:{name:'Dela Gothic One（極太）',fam:'"Dela Gothic One"',b:400,r:400},
   dot:{name:'DotGothic16（ドット）',fam:'"DotGothic16"',b:400,r:400},
   yusei:{name:'Yusei Magic（手書き風）',fam:'"Yusei Magic"',b:400,r:400},
+  kosugi:{name:'Kosugi Maru（細めの丸）',fam:'"Kosugi Maru"',b:400,r:400},
+  kiwi:{name:'Kiwi Maru（やさしい丸）',fam:'"Kiwi Maru"',b:500,r:400},
+  rocknroll:{name:'RocknRoll One（ポップ）',fam:'"RocknRoll One"',b:400,r:400},
+  mochiy:{name:'Mochiy Pop One（もちもち）',fam:'"Mochiy Pop One"',b:400,r:400},
+  hachimaru:{name:'Hachi Maru Pop（かわいい手書き）',fam:'"Hachi Maru Pop"',b:400,r:400},
+  reggae:{name:'Reggae One（筆っぽい）',fam:'"Reggae One"',b:400,r:400},
+  kaisei:{name:'Kaisei Decol（上品）',fam:'"Kaisei Decol"',b:700,r:400},
+  shippori:{name:'Shippori Mincho（明朝）',fam:'"Shippori Mincho"',b:800,r:500},
 };
 const NUMFONTS={
   same:{name:'本文と同じ'},
@@ -356,7 +373,12 @@ const NUMFONTS={
   bebas:{name:'Bebas Neue（縦長）',fam:'"Bebas Neue"',b:400},
   orbitron:{name:'Orbitron（SF・デジタル）',fam:'"Orbitron"',b:900},
   rajdhani:{name:'Rajdhani（スポーティ）',fam:'"Rajdhani"',b:700},
+  montserrat:{name:'Montserrat（モダン）',fam:'"Montserrat"',b:800},
+  poppins:{name:'Poppins（まるみ）',fam:'"Poppins"',b:700},
+  pacifico:{name:'Pacifico（筆記体・英字のみ）',fam:'"Pacifico"',b:400},
 };
+const FONT_ROLES=[['titleJa','タイトル（日本語）'],['titleEn','Title (English)'],['sub','小見出し（チャンネル名）'],['range','日付範囲'],['date','日付ボックス'],['tag','タグ'],['time','時刻'],['slot','配信タイトル'],['slotSub','配信タイトル（英語）'],['foot','注意書き・時刻表記']];
+function fontDef(id){if(!id)return null;if(FONTS[id])return FONTS[id];const n=NUMFONTS[id];return n&&n.fam?{fam:n.fam,b:n.b,r:n.b}:null}
 const ZONES=[
   ['アジア・オセアニア',[['Asia/Tokyo','日本'],['Asia/Seoul','韓国'],['Asia/Shanghai','中国'],['Asia/Taipei','台湾'],['Asia/Hong_Kong','香港'],['Asia/Manila','フィリピン'],['Asia/Singapore','シンガポール'],['Asia/Bangkok','タイ'],['Asia/Jakarta','インドネシア（ジャカルタ）'],['Asia/Kolkata','インド'],['Asia/Dubai','UAE'],['Australia/Sydney','オーストラリア東部'],['Australia/Perth','オーストラリア西部'],['Pacific/Auckland','ニュージーランド']]],
   ['協定世界時',[['UTC','UTC（協定世界時）']]],
@@ -432,10 +454,10 @@ function zoneName(z){for(const[,list]of ZONES)for(const[id,n]of list)if(id===z)r
    state
    ========================================================= */
 function storeWeekView(){}
-function packWeek(){return S.days.map(d=>({off:!!d.off,offNote:d.offNote||'',offNoteEn:d.offNoteEn||'',slots:clone(d.slots)}))}
-function weekEmpty(w){return w.every(d=>!d.off&&!d.slots.length&&!d.offNote&&!d.offNoteEn)}
+function packWeek(){return S.days.map(d=>({off:!!d.off,offNote:d.offNote||'',offNoteEn:d.offNoteEn||'',slots:clone(d.slots),sp:clone(d.sp||{on:false,badge:'',font:'',glow:true})}))}
+function weekEmpty(w){return w.every(d=>!d.off&&!d.slots.length&&!d.offNote&&!d.offNoteEn&&!(d.sp&&d.sp.on))}
 function storeWeek(){const w=packWeek();if(weekEmpty(w))delete S.weeks[S.weekStart];else S.weeks[S.weekStart]={days:w,saved:Date.now()}}
-function loadWeek(ws){const w=S.weeks[ws];S.days.forEach((d,i)=>{const x=w&&w.days[i];d.off=x?x.off:false;d.offNote=x?x.offNote:'';d.offNoteEn=x?x.offNoteEn:'';d.slots=x?clone(x.slots):[]});S.weekStart=ws}
+function loadWeek(ws){const w=S.weeks[ws];S.days.forEach((d,i)=>{const x=w&&w.days[i];d.off=x?x.off:false;d.offNote=x?x.offNote:'';d.offNoteEn=x?x.offNoteEn:'';d.slots=x?clone(x.slots):[];d.sp=x&&x.sp?clone(x.sp):{on:false,badge:'',font:'',glow:true}});S.weekStart=ws}
 function switchWeek(ws){if(ws===S.weekStart)return;storeWeek();loadWeek(ws);postDirty=false;changed(true)}
 function weekLabel(ws){const[y,m,d]=ws.split('-').map(Number);const a=new Date(Date.UTC(y,m-1,d)),b=new Date(Date.UTC(y,m-1,d+6));return`${a.getUTCFullYear()}.${pad2(a.getUTCMonth()+1)}.${pad2(a.getUTCDate())} – ${pad2(b.getUTCMonth()+1)}.${pad2(b.getUTCDate())}`}
 function addDaysStr(ws,n){const[y,m,d]=ws.split('-').map(Number);return ymd(new Date(y,m-1,d+n))}
@@ -463,9 +485,10 @@ function defaultState(){
     days,
     style:{palette:'sunday',font:'mplus',num:'outfit',radius:36,border:3,alpha:P.alpha,outline:false,shadow:true,band:true,plate:false,
       ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],bgType:'grad',bgDots:true,bgSrc:'color',bgFill:'edge',dim:0,dimColor:'#000000',bgScale:100,bgX:50,bgY:50,frameUnder:false,frameFit:'stretch',holOn:true,sunColor:'',satColor:'',holColor:'',wkColor:'',bandFix:true},
-    layout:{mode:'land-right',landFull:'grid',avatar:38,guide:true,width:'fit',rowH:'auto',scale:1,cols:1},
+    layout:{mode:'land-right',landFull:'grid',avatar:38,guide:true,width:'fit',rowH:'auto',scale:1,cols:1,order2:'split'},
     weeks:{},
-    head:{titleScale:100,subScale:100,rangeScale:100,footScale:100,bodyScale:100,align:'left',rangePos:'right',showEyebrow:true,showRange:true,showLegend:true,showNote:true},
+    fonts:{},
+    head:{jaScale:35,enScale:100,order:'ja-en',titleScale:100,subScale:100,rangeScale:100,footScale:100,bodyScale:100,align:'left',rangePos:'right',showEyebrow:true,showRange:true,showLegend:true,showNote:true},
     post:{hashtags:'#配信予定',tags:[{t:'#配信予定',on:true},{t:'#VTuber',on:true}],urls:[{pf:'YouTube',url:'',on:true}],tpl:'week',custom:'',withSecond:true,withEnd:true,withTitle:true,withOff:true,day:-1},
     img:{bg:false,frameAll:false,avatar:false,frame:[false,false,false,false,false,false,false]},
     avatar:{on:true,front:true,x:78,y:55,scale:90,flip:false,shadow:false,opacity:100,key:'off',keyColor:'#00ff00',tol:50,feather:30,connected:true,crop:{l:0,t:0,r:0,b:0},trim:true,autofit:true,rot:0,adj:{bri:0,con:0,sat:100,hue:0,warm:0}},
@@ -480,9 +503,13 @@ function src_has(s,k){return!!(s&&s._raw&&s._raw[k]!==undefined)}
 function normalize(s){
   const raw=s&&s.style?s.style:{};const d=defaultState();s=merge(d,s);s._raw=raw;
   if(!Array.isArray(s.days)||s.days.length!==7)s.days=d.days;
-  s.days=s.days.map((x,i)=>({dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
+  s.days=s.days.map((x,i)=>({sp:x.sp,dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
   if(!s.tags.length)s.tags=d.tags;
   if(!s.weeks||typeof s.weeks!=='object'||Array.isArray(s.weeks))s.weeks={};
+  if(s.layout.order2==='staggerRev'||s.layout.order2==='zigzag')s.layout.order2='stagger';
+  if(!s.fonts||typeof s.fonts!=='object')s.fonts={};
+  if(s.head.hv!==2){const ts=s.head.titleScale||100;if(s.lang==='ja'){s.head.jaScale=ts;s.head.enScale=100}else if(s.lang==='en'){s.head.enScale=ts;s.head.jaScale=35}else{s.head.enScale=ts;s.head.jaScale=35}s.head.hv=2}
+  s.days.forEach(d=>{d.sp=Object.assign({on:false,badge:'',font:'',glow:true},d.sp||{})});
   if(s.presetV!==2){const old={p1:['21:00','23:00'],p2:['23:00',''],p3:['12:00',''],p4:['20:00','']};s.presets.forEach(p=>{const o=old[p.id];if(o&&p.t===o[0]&&(p.e||'')===o[1]){p.t='';p.e=''}});s.presetV=2}
   if(s.time.tbdV!==2){s.time.tbdStart='dash';s.time.tbdEnd='dash';s.time.tbdV=2}
   s.presets=(s.presets||[]).map(p=>({e:'',...p}));
@@ -667,16 +694,18 @@ function buildModel(){
       const a=ws[0],b=ws[ws.length-1];
       sec=ws.length===1?{d:`${a.mo+1}/${a.d}`,w:`(${wdS(a.dow)})`,l:secLabel}:{d:`${a.mo+1}/${a.d}–${b.mo===a.mo?b.d:(b.mo+1)+'/'+b.d}`,w:`(${wdS(a.dow)}–${wdS(b.dow)})`,l:secLabel};
     }
-    days.push({i,dt,date:`${dt.mo+1}/${dt.d}`,wd:`(${wdS(dt.dow)})`,sec,c:day.c,items:it,hasTime:it.some(x=>x.kind==='slot'&&!x.tba&&!x.und)});
+    days.push({sp:day.sp,i,dt,date:`${dt.mo+1}/${dt.d}`,wd:`(${wdS(dt.dow)})`,sec,c:day.c,items:it,hasTime:it.some(x=>x.kind==='slot'&&!x.tba&&!x.und)});
   }
   const ms=wallToUtc(A,dayDate(0).y,dayDate(0).mo,dayDate(0).d,12,0);
   const legend=[tzAbbr(A,ms)].concat(B.on?[tzAbbr(B,ms)]:[]).join(' / ');
   const title=L==='ja'?S.title.ja:S.title.en;
-  const eyebrow=[S.channel.trim(),L==='both'?S.title.ja:''].filter(Boolean).join('  ·  ');
+  const eyebrow=S.channel.trim();
+  const HDm=S.head,ja={text:(S.title.ja||'').trim(),key:'titleJa',scale:HDm.jaScale/100},en={text:(S.title.en||'').trim(),key:'titleEn',scale:HDm.enScale/100};
+  const titles=(L==='ja'?[ja]:L==='en'?[en]:HDm.order==='en-ja'?[en,ja]:[ja,en]).filter(t=>t.text);
   const note=L==='ja'?S.note.ja:L==='en'?S.note.en:[S.note.ja,S.note.en].filter(Boolean).join('  ');
   const legendTxt=(L==='ja'?'時刻表記  ':'TIME ZONE  ')+legend;
   const HD=S.head;
-  return{days,title,eyebrow:HD.showEyebrow?eyebrow:'',range:rangeStr(),showRange:HD.showRange,note:HD.showNote?note:'',legend:HD.showLegend?legendTxt:''};
+  return{days,title,titles,eyebrow:HD.showEyebrow?eyebrow:'',range:rangeStr(),showRange:HD.showRange,note:HD.showNote?note:'',legend:HD.showLegend?legendTxt:''};
 }
 
 /* =========================================================
@@ -684,6 +713,11 @@ function buildModel(){
    ========================================================= */
 const mctx=document.createElement('canvas').getContext('2d');
 const MC=new Map();const GLY=new Map();
+function mkF(w,fam,px){return{w,fam,px,css:`${w} ${px.toFixed(2)}px ${fam}${FALLBACK}`}}
+function FF(key,kind,px){const d=fontDef(S.fonts&&S.fonts[key]);if(d)return mkF(kind==='reg'?d.r:d.b,d.fam,px);return F(kind,px)}
+function retarget(f,id,kind){const d=fontDef(id);return d?mkF(kind==='reg'?d.r:d.b,d.fam,f.px):f}
+function dayK(k,d){if(!d.sp||!d.sp.on||!d.sp.font||!fontDef(d.sp.font))return k;const id=d.sp.font,o=Object.create(k);
+  for(const[n,kind]of[['fTi','b'],['fTiSub','reg'],['fD1','b'],['fW1','b'],['fD2','b'],['fW2','b'],['fL2','b']])if(k[n])o[n]=retarget(k[n],id,kind);return o}
 function F(role,px){
   const f=FONTS[S.style.font];let fam=f.fam,w=f.b;
   if(role==='num'){const n=NUMFONTS[S.style.num];if(n&&n.fam){fam=n.fam;w=n.b}}
@@ -827,13 +861,18 @@ function drawAvatar(ctx,W,H){
   ctx.translate(W*A.x/100,H*A.y/100);ctx.rotate((A.rot||0)*Math.PI/180);if(A.flip)ctx.scale(-1,1);ctx.drawImage(c,-w/2,-h/2,w,h);ctx.restore();
 }
 function avBox(W,H){const c=avatarCanvas();if(!c)return null;const A=S.avatar;const h=H*A.scale/100,w=c.width/c.height*h;const cx=W*A.x/100,cy=H*A.y/100,a=(A.rot||0)*Math.PI/180;const hd=Math.min(W,H)*0.055;
-  const hx=cx+Math.sin(a)*(h/2+hd),hy=cy-Math.cos(a)*(h/2+hd);const hr=Math.min(W,H)*0.018;return{cx,cy,w,h,a,hx:clamp(hx,hr*1.5,W-hr*1.5),hy:clamp(hy,hr*1.5,H-hr*1.5),hr}}
+  const hx=cx+Math.sin(a)*(h/2+hd),hy=cy-Math.cos(a)*(h/2+hd);const hr=Math.min(W,H)*0.018;
+  const co=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([sx,sy])=>{const lx=sx*w/2,ly=sy*h/2;return{x:cx+lx*Math.cos(a)-ly*Math.sin(a),y:cy+lx*Math.sin(a)+ly*Math.cos(a)}});
+  const hco=co.map(c=>({x:clamp(c.x,hr*1.3,W-hr*1.3),y:clamp(c.y,hr*1.3,H-hr*1.3)}));
+  return{cx,cy,w,h,a,hx:clamp(hx,hr*1.5,W-hr*1.5),hy:clamp(hy,hr*1.5,H-hr*1.5),hr,co,hco}}
 function drawAvHandles(ctx,W,H){const b=avBox(W,H);if(!b)return;const u=Math.min(W,H)/400;ctx.save();
   ctx.translate(b.cx,b.cy);ctx.rotate(b.a);ctx.setLineDash([u*4,u*3]);ctx.lineWidth=u*1.2;ctx.strokeStyle='rgba(90,209,255,.95)';ctx.strokeRect(-b.w/2,-b.h/2,b.w,b.h);ctx.setLineDash([]);
   ctx.beginPath();ctx.moveTo(0,-b.h/2);ctx.lineTo(0,-b.h/2-Math.min(W,H)*0.055);ctx.stroke();ctx.restore();
   ctx.save();ctx.beginPath();ctx.arc(b.hx,b.hy,b.hr,0,7);ctx.fillStyle='#ffffff';ctx.fill();ctx.lineWidth=u*1.6;ctx.strokeStyle='rgba(90,209,255,1)';ctx.stroke();
   ctx.beginPath();ctx.arc(b.hx,b.hy,b.hr*0.5,-2.4,1.6);ctx.strokeStyle='rgba(20,120,170,1)';ctx.lineWidth=u*1.3;ctx.stroke();
-  ctx.beginPath();ctx.arc(b.cx,b.cy,u*3,0,7);ctx.fillStyle='rgba(90,209,255,.95)';ctx.fill();ctx.restore();
+  ctx.beginPath();ctx.arc(b.cx,b.cy,u*3,0,7);ctx.fillStyle='rgba(90,209,255,.95)';ctx.fill();
+  const q=b.hr*1.1;for(const c of b.hco){ctx.fillStyle='#ffffff';ctx.fillRect(c.x-q,c.y-q,q*2,q*2);ctx.lineWidth=u*1.6;ctx.strokeStyle='rgba(90,209,255,1)';ctx.strokeRect(c.x-q,c.y-q,q*2,q*2)}
+  ctx.restore();
 }
 function fitAvatar(){
   const c=avatarCanvas();if(!c)return;const{W,H}=dims();const{AV}=regions(W,H);const A=S.avatar;const ar=c.width/c.height;
@@ -847,6 +886,11 @@ function onAvatarLoaded(im){
     const tr=[0,15,240,255].some(i=>d[i*4+3]<20);A.key=tr?'off':'auto'}catch(e){}
   IMGV++;fitAvatar();
 }
+function spGlow(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),sp=S.days[i].sp;if(!sp.glow)return;ctx.save();ctx.shadowColor=rgba(bc,1);ctx.shadowBlur=u*1.8;ctx.lineWidth=u*0.22;ctx.stroke&&0;for(let n=0;n<2;n++){rr(ctx,x,y,w,h,r);ctx.strokeStyle=rgba(bc,0.95);ctx.stroke()}ctx.lineWidth=u*0.22;ctx.strokeStyle=rgba(bc,0.9);rr(ctx,x,y,w,h,r);ctx.stroke();ctx.restore()}
+function spAfter(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),bw=Math.max(u*0.1,S.style.border*u/40*2);ctx.save();ctx.lineWidth=bw;ctx.strokeStyle=bc;rr(ctx,x+bw/2,y+bw/2,w-bw,h-bw,Math.max(0,r-bw/2));ctx.stroke();ctx.restore()}
+function spBadge(ctx,x,y,w,i,u,k){const sp=S.days[i].sp;const txt=(sp.badge||'').trim()||'SPECIAL';const bc=bandColor(i);const f=FF('tag','b',0.4*u);
+  const bw=mw(f,txt)+0.6*u,bh=0.66*u,bx=x+w-bw-0.5*u,by=y-bh*0.55;ctx.save();ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=u*0.25;rr(ctx,bx,by,bw,bh,bh/2);ctx.fillStyle=bc;ctx.fill();ctx.restore();
+  T(ctx,txt,bx+bw/2,by+bh/2,f,autoInk(bc),'center','middle',null)}
 function drawFit(ctx,img,x,y,w,h,fit,r){
   const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
   if(fit==='stretch'){ctx.drawImage(img,x,y,w,h);return}
@@ -924,14 +968,14 @@ function dayBar(ctx,d,x,y,w,u,c){
   ctx.restore();
 }
 function commonFonts(u,k){
-  k.u=u;k.fTag=F('b',0.38*u);k.pillH=0.66*u;k.pillPx=0.3*u;k.pillMin=1.7*u;
-  k.fP=F('num',1.0*u);k.fPL=F('b',0.36*u);k.fS=F('num',0.6*u);k.fSL=F('b',0.3*u);k.fPre=F('b',0.36*u);
-  k.fTba=F('b',0.66*u);k.fDu=F('num',0.32*u);k.fTi=F('b',0.6*u);k.fTiSub=F('reg',0.4*u);
-  k.fH=F('b',1.3*u);k.fEy=F('b',0.42*u);k.fRange=F('num',0.62*u);k.fFoot=F('reg',0.34*u);
+  k.u=u;k.fTag=FF('tag','b',0.38*u);k.pillH=0.66*u;k.pillPx=0.3*u;k.pillMin=1.7*u;
+  k.fP=FF('time','num',1.0*u);k.fPL=F('b',0.36*u);k.fS=FF('time','num',0.6*u);k.fSL=F('b',0.3*u);k.fPre=F('b',0.36*u);
+  k.fTba=FF('time','b',0.66*u);k.fDu=FF('time','num',0.32*u);k.fTi=FF('slot','b',0.6*u);k.fTiSub=FF('slotSub','reg',0.4*u);
+  k.fEy=FF('sub','b',0.42*u);k.fRange=FF('range','num',0.62*u);k.fFoot=FF('foot','reg',0.34*u);
 }
 
 /* ---------- day label box ---------- */
-function dayFonts(k,u){k.fD1=F('num',0.8*u);k.fW1=F('b',0.4*u);k.fD2=F('num',0.5*u);k.fW2=F('b',0.3*u);k.fL2=F('b',0.25*u)}
+function dayFonts(k,u){k.fD1=FF('date','num',0.8*u);k.fW1=FF('date','b',0.4*u);k.fD2=FF('date','num',0.5*u);k.fW2=FF('date','b',0.3*u);k.fL2=FF('date','b',0.25*u)}
 function line1W(k,d){return mw(k.fD1,d.date)+0.12*k.u+mw(k.fW1,d.wd)}
 function line2W(k,d){return mw(k.fD2,d.sec.d)+0.1*k.u+mw(k.fW2,d.sec.w)+0.1*k.u+mw(k.fL2,d.sec.l)}
 function drawLine1(ctx,k,d,x,yb,dInk,wInk,ol){T(ctx,d.date,x,yb,k.fD1,dInk,'left',undefined,ol);T(ctx,d.wd,x+mw(k.fD1,d.date)+0.12*k.u,yb,k.fW1,wInk,'left',undefined,ol)}
@@ -947,17 +991,18 @@ function rowMetrics(M,u){
   k.pad=0.55*u;k.padY=0.34*u;k.gc=0.5*u;k.sg=0.22*u;k.rg=0.26*u;
   dayFonts(k,u);
   timeCols(k,M,S.tz.b.on&&S.time.arrange==='stack');
-  let dw=0,anySec=false;for(const d of M.days){dw=Math.max(dw,line1W(k,d),d.sec?line2W(k,d):0);if(d.sec)anySec=true}
+  let dw=0,anySec=false;for(const d of M.days){const kd=dayK(k,d);dw=Math.max(dw,line1W(kd,d),d.sec?line2W(kd,d):0);if(d.sec)anySec=true}
   k.dayW=dw+0.9*u;
   k.dayH=asc(k.fD1)+(anySec?0.3*u+asc(k.fD2):0)+0.7*u;
   k.barH=0.62*u;
   let tagW=0,tW=0,tiW=0,spanW=0,inner=0;const inners=[];
   for(const d of M.days){
+    const kd=dayK(k,d);
     let h=0;d.items.forEach((it,n)=>{
       if(it.tag)tagW=Math.max(tagW,Math.max(mw(k.fTag,it.tag.name)+2*k.pillPx,k.pillMin));
       const tiH=0.6*u*1.25+(it.sub?0.4*u*1.3:0);
-      if(it.kind==='slot'){tW=Math.max(tW,timeW(k,it));tiW=Math.max(tiW,mw(k.fTi,it.main),mw(k.fTiSub,it.sub));it._h=Math.max(k.pillH,timeH(k,it),tiH)}
-      else{spanW=Math.max(spanW,mw(k.fTi,it.main),mw(k.fTiSub,it.sub));it._h=Math.max(it.tag?k.pillH:0,tiH)}
+      if(it.kind==='slot'){tW=Math.max(tW,timeW(k,it));tiW=Math.max(tiW,mw(kd.fTi,it.main),mw(kd.fTiSub,it.sub));it._h=Math.max(k.pillH,timeH(k,it),tiH)}
+      else{spanW=Math.max(spanW,mw(kd.fTi,it.main),mw(kd.fTiSub,it.sub));it._h=Math.max(it.tag?k.pillH:0,tiH)}
       h+=it._h+(n?k.sg:0);
     });if(S.time.bar&&d.hasTime)h+=k.barH;inner=Math.max(inner,h);inners.push(h);
   }
@@ -967,21 +1012,31 @@ function rowMetrics(M,u){
   k.fixedW=k.lead+tW+k.gc+k.pad;
   k.rowH=Math.max(inner+2*k.padY,k.dayH);
   k.rowHs=inners.map(h=>S.layout.rowH==='equal'?k.rowH:Math.max(h+2*k.padY,k.dayH));
-  const HD=S.head,ts=HD.titleScale/100,es=HD.subScale/100,rs=HD.rangeScale/100,fs=HD.footScale/100;
-  k.fH=F('b',1.3*u*ts);k.fEy=F('b',0.42*u*es);k.fRange=F('num',0.62*u*rs);k.fFoot=F('reg',0.34*u*fs);
-  const hasT=!!(M.title||'').trim(),showR=M.showRange;
+  const HD=S.head,es=HD.subScale/100,rs=HD.rangeScale/100,fs=HD.footScale/100;
+  k.fEy=FF('sub','b',0.42*u*es);k.fRange=FF('range','num',0.62*u*rs);k.fFoot=FF('foot','reg',0.34*u*fs);
+  k.tl=M.titles.map(t=>({...t,f:FF(t.key,'b',1.3*u*t.scale),h:1.3*u*t.scale*1.08,a:1.3*u*t.scale*0.9}));
+  const hasT=k.tl.length>0,showR=M.showRange;
   k.rBelow=showR&&(HD.rangePos==='below'||HD.align!=='left'||!hasT);k.rRight=showR&&!k.rBelow;
   k.eyH=M.eyebrow?0.42*u*es*1.5:0;k.eyA=0.42*u*es;
-  k.tH=hasT?1.3*u*ts*1.05:0;k.tA=1.3*u*ts*0.88;
+  k.tH=k.tl.reduce((a,t)=>a+t.h,0);
   k.rH=k.rBelow?0.62*u*rs*1.45:0;k.rA=0.62*u*rs*1.0;
   k.headH=k.eyH+k.tH+k.rH;k.headGap=k.headH?0.5*u:0;
-  k.headW=Math.max(M.eyebrow?mw(k.fEy,M.eyebrow):0,(hasT?mw(k.fH,M.title):0)+(k.rRight?0.8*u+mw(k.fRange,M.range):0),k.rBelow?mw(k.fRange,M.range):0);
+  const rW=mw(k.fRange,M.range);
+  k.headW=Math.max(M.eyebrow?mw(k.fEy,M.eyebrow):0,...k.tl.map((t,j)=>mw(t.f,t.text)+(k.rRight&&j===k.tl.length-1?0.8*u+rW:0)),k.rBelow?rW:0);
   k.footH=(M.legend||M.note)?0.34*u*fs*1.6:0;k.footGap=k.footH?0.4*u:0;
-  const cols=S.layout.cols===2?2:1,per=Math.ceil(7/cols);k.cols=cols;k.per=per;k.colGap=0.6*u;
-  let bodyH=0;for(let c=0;c<cols;c++){const hs=k.rowHs.slice(c*per,(c+1)*per);if(hs.length)bodyH=Math.max(bodyH,hs.reduce((a,b)=>a+b,0)+(hs.length-1)*k.rg)}
+  const cols=S.layout.cols===2?2:1;k.cols=cols;k.colGap=0.6*u;
+  const bodyH=colPlan(k).bodyH;
   k.bodyH=bodyH;
   k.totalH=k.headH+k.headGap+bodyH+k.footGap+k.footH;
   return k;
+}
+function colPlan(k){
+  const o=S.layout.order2||'split';let groups;
+  if(k.cols===1)groups=[[0,1,2,3,4,5,6]];else if(o==='split')groups=[[0,1,2,3],[4,5,6]];else groups=[[0,2,4,6],[1,3,5]];
+  const offs=groups.map(()=>0);
+  if(k.cols===2&&o==='stagger')offs[1]=(k.rowHs[0]+k.rg)/2;
+  let bodyH=0;groups.forEach((g,c)=>{bodyH=Math.max(bodyH,offs[c]+g.reduce((a,i)=>a+k.rowHs[i],0)+(g.length-1)*k.rg)});
+  return{groups,offs,bodyH};
 }
 function layoutList(M,R,W,H){
   const short=Math.min(W,H),uMax=short*0.062,floor=short*0.034;
@@ -999,7 +1054,7 @@ function layoutList(M,R,W,H){
   if(k.cols>1){
     const avail=R.h-(k.headH+k.headGap+k.footGap+k.footH);
     if(k.bodyH>0&&avail>k.bodyH){const f=Math.min(avail/k.bodyH,1.7);k.rowHs=k.rowHs.map(h=>h*f);k.rg*=f;
-      let bh=0;for(let c=0;c<k.cols;c++){const hs=k.rowHs.slice(c*k.per,(c+1)*k.per);if(hs.length)bh=Math.max(bh,hs.reduce((a,b)=>a+b,0)+(hs.length-1)*k.rg)}
+      const bh=colPlan(k).bodyH;
       k.bodyH=bh;k.totalH=k.headH+k.headGap+bh+k.footGap+k.footH}
   }
   return{k,u,rowW,blockW,trunc:k.fixedW+k.titleNat>rowW+0.5,small:u<floor*0.999&&bs>=1};
@@ -1011,40 +1066,46 @@ function drawList(ctx,M,R,W,H){
   if(st.plate&&k.headH){ctx.save();rr(ctx,x0-0.4*u,y-0.3*u,BW+0.8*u,k.headH+0.5*u,0.4*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
   OUTLINE=st.outline?autoInk(st.ink):null;
   const al=HD.align||'left',ax=al==='left'?x0:al==='center'?x0+BW/2:x0+BW;
+  LAST.block={x:x0,y,w:BW,h:k.totalH};if(k.headH)LAST.hits.push({type:'head',x:x0,y,w:BW,h:k.headH});
   if(k.eyH){T(ctx,ellip(k.fEy,M.eyebrow,BW),ax,y+k.eyA,k.fEy,rgba(st.ink,0.8),al);y+=k.eyH}
-  if(k.tH){const hb=y+k.tA;const rw=k.rRight?mw(k.fRange,M.range)+0.8*u:0;T(ctx,ellip(k.fH,M.title,BW-rw),ax,hb,k.fH,st.ink,al);if(k.rRight)T(ctx,M.range,x0+BW,hb,k.fRange,st.ink,'right');y+=k.tH}
+  k.tl.forEach((t,j)=>{const last=j===k.tl.length-1;const hb=y+t.a;const rw=k.rRight&&last?mw(k.fRange,M.range)+0.8*u:0;T(ctx,ellip(t.f,t.text,BW-rw),ax,hb,t.f,st.ink,al);if(k.rRight&&last)T(ctx,M.range,x0+BW,hb,k.fRange,st.ink,'right');y+=t.h});
   if(k.rH){T(ctx,M.range,ax,y+k.rA,k.fRange,st.ink,al);y+=k.rH}
   y+=k.headGap;OUTLINE=null;
   const top=y;
   const r=st.radius/100*Math.min(Math.min(...k.rowHs),2.4*u)/2;
-  for(const d of M.days){
-    const col=Math.floor(d.i/k.per);if(d.i%k.per===0)y=top;
+  const plan=colPlan(k);
+  for(const[col,g]of plan.groups.entries())for(const[gi,di]of g.entries()){
+    const d=M.days[di];if(gi===0)y=top+plan.offs[col];
     const rx=x0+col*(rowW+k.colGap);
-    const c=d.c,RH=k.rowHs[d.i];
+    const c=d.c,RH=k.rowHs[d.i],kd=dayK(k,d);
+    if(d.sp&&d.sp.on)spGlow(ctx,rx,y,rowW,RH,r,d.i,u);
     const cb=cardBase(ctx,rx,y,rowW,RH,r,d.i,u,{x:rx,y,w:k.dayW,h:RH});
+    if(d.sp&&d.sp.on)spAfter(ctx,rx,y,rowW,RH,r,d.i,u);
+    LAST.hits.push({type:'day',i:d.i,x:rx,y,w:rowW,h:RH});
     const bc=bandColor(d.i),dInk=cb.bandOn?autoInk(bc):c.t,wInk=cb.bandOn?autoInk(bc):bc;
     OUTLINE=(st.outline&&st.alpha<60)?autoInk(c.t):null;
     const bh=asc(k.fD1)+(d.sec?0.3*u+asc(k.fD2):0);const by=y+(RH-bh)/2;
     const cx=rx+k.dayW/2;const ol=cb.bandOn?null:OUTLINE;
-    drawLine1(ctx,k,d,cx-line1W(k,d)/2,by+asc(k.fD1),dInk,wInk,ol);
-    if(d.sec)drawLine2(ctx,k,d,cx-line2W(k,d)/2,by+asc(k.fD1)+0.3*u+asc(k.fD2),dInk,ol);
+    drawLine1(ctx,kd,d,cx-line1W(kd,d)/2,by+asc(kd.fD1),dInk,wInk,ol);
+    if(d.sec)drawLine2(ctx,kd,d,cx-line2W(kd,d)/2,by+asc(kd.fD1)+0.3*u+asc(kd.fD2),dInk,ol);
     let ih=0;d.items.forEach((it,n)=>ih+=it._h+(n?k.sg:0));const bar=S.time.bar&&d.hasTime;if(bar)ih+=k.barH;
     let iy=y+(RH-ih)/2;const iy0=iy;
     const xTag=rx+k.dayW+k.pad,xTime=rx+k.lead,xTi=xTime+k.timeW+k.gc,maxTi=rx+rowW-k.pad-xTi;
     for(const it of d.items){
       const cy=iy+it._h/2;
       if(it.tag)pill(ctx,xTag,cy,it.tag,k);
-      if(it.kind==='slot'){drawTime(ctx,xTime,cy,k,it,c.t);drawTitle(ctx,it,xTi,cy,maxTi,k,c.t)}
-      else drawTitle(ctx,it,xTime,cy,rx+rowW-k.pad-xTime,k,c.t,it.kind==='off'?0.85:0.65);
+      if(it.kind==='slot'){drawTime(ctx,xTime,cy,k,it,c.t);drawTitle(ctx,it,xTi,cy,maxTi,kd,c.t)}
+      else drawTitle(ctx,it,xTime,cy,rx+rowW-k.pad-xTime,kd,c.t,it.kind==='off'?0.85:0.65);
       iy+=it._h+k.sg;
     }
     if(bar)dayBar(ctx,d,xTag,iy0+ih-k.barH+0.2*u,rx+rowW-k.pad-xTag-0.5*u,u,c);
     OUTLINE=null;
+    if(d.sp&&d.sp.on)spBadge(ctx,rx,y,rowW,d.i,u,k);
     y+=RH+k.rg;
   }
   if(k.footH){
     OUTLINE=st.outline?autoInk(st.ink):null;
-    y=top+k.bodyH+k.footGap;
+    y=top+k.bodyH+k.footGap;LAST.hits.push({type:'foot',x:x0,y,w:BW,h:k.footH});
     if(st.plate){ctx.save();rr(ctx,x0-0.4*u,y-0.15*u,BW+0.8*u,k.footH+0.3*u,0.3*u);ctx.fillStyle=rgba(st.panel,0.82);ctx.fill();ctx.restore()}
     const fb=y+0.34*u*(HD.footScale/100)*1.15;
     const lgW=M.legend?mw(k.fFoot,M.legend)+0.8*u:0;
@@ -1069,14 +1130,15 @@ function drawTitle(ctx,it,x,cy,max,k,hex,al=1){
 /* ---------- grid layout (tiles) ---------- */
 function tileMetrics(M,u,cw,ch){
   const k={};commonFonts(u,k);
-  k.fP=F('num',0.95*u);k.fS=F('num',0.56*u);k.fTi=F('b',0.54*u);k.fTiSub=F('reg',0.37*u);
+  k.fP=FF('time','num',0.95*u);k.fS=FF('time','num',0.56*u);k.fTi=FF('slot','b',0.54*u);k.fTiSub=FF('slotSub','reg',0.37*u);
   timeCols(k,M,true);
   for(const d of M.days)for(const it of d.items)if(it.tag)k.pillMin=Math.max(k.pillMin,mw(k.fTag,it.tag.name)+2*k.pillPx);
   dayFonts(k,u);const anySec=M.days.some(d=>d.sec);
   k.pad=0.45*u;k.bandH=anySec?asc(k.fD1)+0.3*u+asc(k.fD2)+0.6*u:1.25*u;k.ig=0.34*u;k.barH=S.time.bar?0.7*u:0;
   const iw=cw-2*k.pad;let ok=true;
   for(const d of M.days){
-    if(line1W(k,d)>iw||(d.sec&&line2W(k,d)>iw))ok=false;
+    const kd=dayK(k,d);
+    if(line1W(kd,d)>iw||(d.sec&&line2W(kd,d)>iw))ok=false;
     let h=0;
     d.items.forEach((it,n)=>{
       const lay={};
@@ -1085,12 +1147,12 @@ function tileMetrics(M,u,cw,ch){
         lay.l1=tagW+timeW(k,it);
         if(lay.l1>iw)ok=false;
         lay.h1=Math.max(it.tag?k.pillH:0,timeH(k,it));
-        lay.ti=wrapText(k.fTi,it.main,iw,2);
-        lay.sub=it.sub&&it.main?ellip(k.fTiSub,it.sub,iw):'';
-        if(!it.main&&it.sub)lay.ti=wrapText(k.fTi,it.sub,iw,2);
+        lay.ti=wrapText(kd.fTi,it.main,iw,2);
+        lay.sub=it.sub&&it.main?ellip(kd.fTiSub,it.sub,iw):'';
+        if(!it.main&&it.sub)lay.ti=wrapText(kd.fTi,it.sub,iw,2);
       }else{
         lay.l1=tagW;lay.h1=it.tag?k.pillH:0;
-        lay.ti=wrapText(k.fTi,it.main,iw-(it.tag?0:0),2);lay.sub=it.sub?ellip(k.fTiSub,it.sub,iw):'';
+        lay.ti=wrapText(kd.fTi,it.main,iw,2);lay.sub=it.sub?ellip(kd.fTiSub,it.sub,iw):'';
       }
       lay.h=lay.h1+(lay.h2||0)+(lay.ti.length?0.14*u+lay.ti.length*0.54*u*1.28:0)+(lay.sub?0.37*u*1.4:0);
       it._t=lay;h+=lay.h+(n?k.ig:0);
@@ -1103,14 +1165,15 @@ function infoTile(ctx,M,x,y,w,h,u,draw){
   const st=S.style;
   const fit=v=>{
     const pad=0.5*v,iw=w-2*pad;
-    const HD=S.head,ts=HD.titleScale/100,rs=HD.rangeScale/100,es=HD.subScale/100,fs=HD.footScale/100;
-    const fEy=F('b',0.4*v*es),fT=F('b',1.0*v*ts),fR=F('num',0.62*v*rs),fL=F('b',0.36*v*fs),fN=F('reg',0.34*v*fs);
-    const tl=wrapText(fT,M.title,iw,2),nl=wrapText(fN,M.note,iw,3);
-    const eh=M.eyebrow?0.4*v*1.6:0;
-    const body=eh+tl.length*1.0*v*ts*1.12+(M.showRange?0.25*v+0.62*v*rs*1.3:0);
+    const HD=S.head,ts=1,rs=HD.rangeScale/100,es=HD.subScale/100,fs=HD.footScale/100;
+    const fEy=FF('sub','b',0.4*v*es),fR=FF('range','num',0.62*v*rs),fL=FF('foot','b',0.36*v*fs),fN=FF('foot','reg',0.34*v*fs);
+    const tls=M.titles.map(t=>{const f=FF(t.key,'b',1.0*v*t.scale);return{f,sz:1.0*v*t.scale,lines:wrapText(f,t.text,iw,2)}});
+    const nl=wrapText(fN,M.note,iw,3);
+    const eh=M.eyebrow?0.4*v*es*1.6:0;
+    const body=eh+tls.reduce((a,t)=>a+t.lines.length*t.sz*1.12,0)+(M.showRange?0.25*v+0.62*v*rs*1.3:0);
     const foot=(M.legend?0.36*v*fs*1.6:0)+nl.length*0.34*v*fs*1.45;
     const ok=body+foot+0.5*v+2*pad<=h&&(!M.showRange||mw(fR,M.range)<=iw)&&mw(fL,M.legend)<=iw&&(!M.eyebrow||mw(fEy,M.eyebrow)<=iw*1.4);
-    return{ok,pad,iw,fEy,fT,fR,fL,fN,tl,nl,eh,foot,ts,rs,fs};
+    return{ok,pad,iw,fEy,fR,fL,fN,tls,nl,eh,foot,ts,rs,fs};
   };
   const v=bsearch(v=>fit(v).ok,u*0.5,u*1.7);
   if(!draw)return v;
@@ -1118,8 +1181,8 @@ function infoTile(ctx,M,x,y,w,h,u,draw){
   ctx.save();if(st.shadow){ctx.shadowColor='rgba(10,8,20,.22)';ctx.shadowBlur=u*0.5;ctx.shadowOffsetY=u*0.12}
   rr(ctx,x,y,w,h,st.radius/100*Math.min(w,h,3*u)/2);ctx.fillStyle=rgba(st.panel,Math.max(0.55,st.alpha/100));ctx.fill();ctx.restore();
   const ink=st.ink;let yy=y+g.pad;
-  if(M.eyebrow){T(ctx,ellip(g.fEy,M.eyebrow,g.iw),x+g.pad,yy+0.4*v,g.fEy,rgba(ink,0.7));yy+=g.eh}
-  for(const l of g.tl){T(ctx,l,x+g.pad,yy+1.0*v*g.ts*0.92,g.fT,ink);yy+=1.0*v*g.ts*1.12}
+  if(M.eyebrow){T(ctx,ellip(g.fEy,M.eyebrow,g.iw),x+g.pad,yy+g.fEy.px,g.fEy,rgba(ink,0.7));yy+=g.eh}
+  for(const t of g.tls)for(const l of t.lines){T(ctx,l,x+g.pad,yy+t.sz*0.92,t.f,ink);yy+=t.sz*1.12}
   if(M.showRange){yy+=0.25*v;T(ctx,M.range,x+g.pad,yy+0.62*v*g.rs,g.fR,rgba(ink,0.9));
   ctx.fillStyle=bandColor(0);ctx.fillRect(x+g.pad,yy+0.62*v*g.rs*1.3+0.12*v,1.6*v,0.1*v)}
   let fy=y+h-g.pad-g.foot;
@@ -1135,13 +1198,16 @@ function drawGrid(ctx,M,R,W,H){
   const st=S.style;
   M.days.forEach((d,idx)=>{
     const x=R.x+(idx%cols)*(cw+gap),y=R.y+Math.floor(idx/cols)*(ch+gap),c=d.c;
-    const r=st.radius/100*Math.min(cw,ch,3*u)/2;
+    const r=st.radius/100*Math.min(cw,ch,3*u)/2,kd=dayK(k,d);
+    if(d.sp&&d.sp.on)spGlow(ctx,x,y,cw,ch,r,d.i,u);
     const cb=cardBase(ctx,x,y,cw,ch,r,d.i,u,{x,y,w:cw,h:k.bandH});
+    if(d.sp&&d.sp.on)spAfter(ctx,x,y,cw,ch,r,d.i,u);
+    LAST.hits.push({type:'day',i:d.i,x,y,w:cw,h:ch});
     const bc=bandColor(d.i),dInk=cb.bandOn?autoInk(bc):c.t,wInk=cb.bandOn?autoInk(bc):bc;
     OUTLINE=(st.outline&&st.alpha<60)?autoInk(c.t):null;
     const ol=cb.bandOn?null:OUTLINE;const bh=asc(k.fD1)+(d.sec?0.3*u+asc(k.fD2):0);const by=y+(k.bandH-bh)/2;
-    drawLine1(ctx,k,d,x+k.pad,by+asc(k.fD1),dInk,wInk,ol);
-    if(d.sec)drawLine2(ctx,k,d,x+k.pad,by+asc(k.fD1)+0.3*u+asc(k.fD2),dInk,ol);
+    drawLine1(ctx,kd,d,x+k.pad,by+asc(kd.fD1),dInk,wInk,ol);
+    if(d.sec)drawLine2(ctx,kd,d,x+k.pad,by+asc(kd.fD1)+0.3*u+asc(kd.fD2),dInk,ol);
     if(!cb.bandOn){ctx.fillStyle=rgba(c.b,0.6);ctx.fillRect(x+k.pad,y+k.bandH-0.04*u,cw-2*k.pad,Math.max(1,0.05*u))}
     let tot=0;d.items.forEach((it,n)=>tot+=it._t.h+(n?k.ig:0));
     const bar=S.time.bar&&d.hasTime;const avail=ch-k.bandH-k.pad*1.6-(bar?k.barH:0);let iy=y+k.bandH+k.pad*0.8+Math.max(0,(avail-tot)/2);
@@ -1154,25 +1220,27 @@ function drawGrid(ctx,M,R,W,H){
         drawTime(ctx,lx,cy,k,it,c.t);
       }
       const tcol=it.kind==='slot'?c.t:rgba(c.t,it.kind==='off'?0.8:0.6);
-      if(L.ti.length){ty+=0.14*u;for(const l of L.ti){T(ctx,l,x+k.pad,ty+0.54*u*0.95,k.fTi,tcol);ty+=0.54*u*1.28}}
-      if(L.sub){T(ctx,L.sub,x+k.pad,ty+0.37*u*1.05,k.fTiSub,rgba(c.t,0.75))}
+      if(L.ti.length){ty+=0.14*u;for(const l of L.ti){T(ctx,l,x+k.pad,ty+0.54*u*0.95,kd.fTi,tcol);ty+=0.54*u*1.28}}
+      if(L.sub){T(ctx,L.sub,x+k.pad,ty+0.37*u*1.05,kd.fTiSub,rgba(c.t,0.75))}
       iy+=L.h+k.ig;
     }
     OUTLINE=null;
+    if(d.sp&&d.sp.on)spBadge(ctx,x,y,cw,d.i,u,k);
   });
   const x=R.x+3*(cw+gap),y=R.y+ch+gap;
-  OUTLINE=null;infoTile(ctx,M,x,y,cw,ch,u,true);
+  OUTLINE=null;infoTile(ctx,M,x,y,cw,ch,u,true);LAST.hits.push({type:'head',x,y,w:cw,h:ch});LAST.block={x:R.x,y:R.y,w:R.w,h:R.h};
   LAST.card={w:cw,hs:[Math.round(ch)],kind:'grid'};
   return{u,small:u<floor,trunc:false};
 }
 function draw(ctx,W,H,preview){
-  ctx.save();ctx.clearRect(0,0,W,H);
+  ctx.save();ctx.clearRect(0,0,W,H);LAST.hits=[];LAST.block=null;
   drawBg(ctx,W,H);
   const M=buildModel();const{R,AV}=regions(W,H);
   if(!S.avatar.front)drawAvatar(ctx,W,H);
   const res=(S.layout.mode==='land-full'&&S.layout.landFull==='grid')?drawGrid(ctx,M,R,W,H):drawList(ctx,M,R,W,H);
   if(S.avatar.front)drawAvatar(ctx,W,H);
   if(preview&&dragTarget()==='avatar')drawAvHandles(ctx,W,H);
+  if(preview&&dragTarget()==='avarea'&&AV)drawAreaHandle(ctx,W,H);
   if(preview&&AV&&S.layout.guide&&!(S.img.avatar&&S.avatar.on)){
     ctx.save();const u=Math.min(W,H)/40;
     ctx.fillStyle='rgba(255,79,139,.10)';ctx.fillRect(AV.x,AV.y,AV.w,AV.h);
@@ -1230,11 +1298,15 @@ function renderTab(){
   if(TAB==='share')afterShare();
   if(TAB==='avatar')drawAvThumbs();
   renderQuick();
-  const on=!!dragTarget();stage.classList.toggle('dragbg',on);$('#dragHint').hidden=!on;$('#dragHint').textContent=dragTarget()==='avatar'?'ドラッグで移動／丸いハンドルで回転／ホイール・ピンチで拡大縮小':'プレビューをドラッグで背景を移動／ホイール・ピンチで拡大縮小';
+  const on=!!dragTarget();stage.classList.toggle('dragbg',on);$('#dragHint').hidden=false;$('#dragHint').textContent=({avatar:'ドラッグで移動／四隅で拡大縮小／丸いハンドルで回転',avarea:'ピンクの境界線をドラッグで、アバター用の場所の広さを変更',bg:'プレビューをドラッグで背景を移動／ホイール・ピンチで拡大縮小'})[dragTarget()]||'プレビューをタップすると、その部分を編集できます';
 }
 const seg=(bind,opts,cur,attrs='')=>`<div class="seg" role="group">${opts.map(([v,l,dis])=>`<button type="button" data-seg="${bind}" data-v="${esc(v)}" aria-pressed="${String(v)===String(cur)}" ${dis?'disabled':''} ${attrs}>${l}</button>`).join('')}</div>`;
 const rangeRow=(label,bind,min,max,step,unit='')=>`<label class="range-row"><span>${label}</span><input type="range" id="r-${bind.replace(/\./g,'-')}" data-bind="${bind}" data-type="num" min="${min}" max="${max}" step="${step}" value="${getPath(S,bind)}"><output>${Math.round(getPath(S,bind)*10)/10}${unit}</output></label>`;
 const check=(label,bind)=>`<label class="check"><input type="checkbox" id="c-${bind.replace(/\./g,'-')}" data-bind="${bind}" data-type="bool" ${getPath(S,bind)?'checked':''}> ${label}</label>`;
+function fontOptions(sel,inheritLabel){
+  return(inheritLabel?`<option value="">${inheritLabel}</option>`:'')+`<optgroup label="日本語も使えるフォント">${Object.entries(FONTS).map(([k,f])=>`<option value="${k}" ${k===sel?'selected':''}>${f.name}</option>`).join('')}</optgroup>`+
+  `<optgroup label="英数字向けフォント">${Object.entries(NUMFONTS).filter(([k,f])=>f.fam).map(([k,f])=>`<option value="${k}" ${k===sel?'selected':''}>${f.name}</option>`).join('')}</optgroup>`;
+}
 function tagOptions(sel,allowNone=true){return(allowNone?`<option value="">タグなし</option>`:'')+S.tags.filter(t=>!t.off).map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${esc(t.name)}</option>`).join('')}
 function zoneOptions(sel){
   let h='';const known=new Set();
@@ -1312,8 +1384,12 @@ function tabDesign(){
   h+=`</div><div class="row"><input type="color" id="autoColor" value="${S.days[0].c.b}" aria-label="テーマ色"><div class="seg" style="flex:1"><button type="button" data-act="autopal" data-tone="light">テーマ色から自動（明るめ）</button><button type="button" data-act="autopal" data-tone="dark">自動（暗め）</button></div></div>
   <p class="hint">好きな1色を選ぶと、7日分の枠・塗り・文字色をまとめて作ります。下の「1日ごとの色」で個別に変更もできます。</p></div>`;
   h+=`<div class="grp"><h3>文字 <span class="en">TYPE</span></h3>
-    <div class="row"><label class="field"><span>フォント</span><select data-bind="style.font" id="s-font">${Object.entries(FONTS).map(([k,f])=>`<option value="${k}" ${k===st.font?'selected':''}>${f.name}</option>`).join('')}</select></label>
+    <div class="row"><label class="field"><span>基本のフォント</span><select data-bind="style.font" id="s-font">${Object.entries(FONTS).map(([k,f])=>`<option value="${k}" ${k===st.font?'selected':''}>${f.name}</option>`).join('')}</select></label>
     <label class="field"><span>数字（時刻・日付）</span><select data-bind="style.num" id="s-num">${Object.entries(NUMFONTS).map(([k,f])=>`<option value="${k}" ${k===st.num?'selected':''}>${f.name}</option>`).join('')}</select></label></div>
+    <div class="row"><label class="field"><span>まとめて変更</span><select id="bulkFont">${fontOptions(st.font,'')}</select></label><button class="btn sm" data-act="bulkfont">すべての文字をこのフォントにする</button></div>
+    <details class="fdet" ${Object.values(S.fonts).some(Boolean)?'open':''}><summary>部分ごとのフォント${Object.values(S.fonts).filter(Boolean).length?`（${Object.values(S.fonts).filter(Boolean).length}か所を変更中）`:''}</summary>
+      <div class="froles">${FONT_ROLES.map(([k,l])=>`<label class="field"><span>${l}</span><select data-bind="fonts.${k}" id="f-${k}">${fontOptions(S.fonts[k]||'',k==='date'||k==='time'||k==='range'?'基本（数字は数字のフォント）':'基本のフォント')}</select></label>`).join('')}</div>
+      <div class="row"><button class="btn sm ghost" data-act="fontsreset">部分ごとの設定をすべて基本に戻す</button></div></details>
     <div class="row"><label class="check"><input type="color" data-bind="style.ink" id="s-ink" value="${st.ink}"> 見出し・注意書きの文字色</label></div>
     <div class="row">${check('文字にフチを付ける（背景が派手なとき）','style.outline')}</div>
     <div class="row">${check('見出しの後ろに帯を敷く','style.plate')}</div>
@@ -1326,6 +1402,10 @@ function tabDesign(){
     <div class="row">${check('影を付ける','style.shadow')} ${check('日付部分を色帯にする','style.band')}</div>
   </div>`;
   const cs=(k,l,hue)=>{const v=st[k];const base=st.wkColor||autoWeekday();const sample=v||(k==='wkColor'?base:accent(hue));return`<div class="wkc"><span>${l}</span><input type="color" data-bind="style.${k}" id="s-${k}" value="${sample}">${v?`<button class="btn sm ghost" data-act="wkauto" data-k="${k}">自動に戻す</button>`:'<em>自動</em>'}</div>`};
+  h+=`<div class="grp" id="spGrp"><h3>特別な日の装飾 <span class="en">SPECIAL</span></h3>
+    <p class="hint">記念日やイベントの日など、表示中の週の特定の日だけを目立たせます（設定は週ごとに保存）。光る枠・太い枠線・バッジが付き、その日だけ別のフォントにもできます。</p>
+    <div class="list">${S.days.map((d,i)=>{const sp=d.sp||{};return`<div class="sprow ${sp.on?'on':''}" data-day="${i}"><label class="check"><input type="checkbox" data-spf="on" ${sp.on?'checked':''}> <b>${dayLabel(i)} ${WD_JA[i]}</b></label>
+      ${sp.on?`<input type="text" data-spf="badge" value="${esc(sp.badge||'')}" placeholder="バッジ（例：記念日・SPECIAL）" aria-label="バッジの文字"><select data-spf="font" aria-label="この日のフォント">${fontOptions(sp.font||'','フォントはそのまま')}</select><label class="check"><input type="checkbox" data-spf="glow" ${sp.glow!==false?'checked':''}> 光らせる</label>`:''}</div>`}).join('')}</div></div>`;
   h+=`<div class="grp"><h3>曜日ラベルの色 <span class="en">WEEKDAY</span></h3>
     <p class="hint">左の日付ボックス（色帯）の色です。平日は7日共通の1色を背景・塗りの色から自動で作り、土曜は青系、日曜と祝日は赤系をその色に合う明るさ・鮮やかさで作ります。</p>
     <div class="wkcs">${cs('wkColor','平日',0)}${cs('sunColor','日曜',356)}${cs('satColor','土曜',218)}${S.style.holOn?cs('holColor','祝日',356):''}</div>
@@ -1547,14 +1627,17 @@ function tabLayout(){
   if(avOn)h+=rangeRow('アバターの幅','layout.avatar',20,60,1,'%')+check('アバター用の場所をプレビューに表示','layout.guide');
   if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<label class="field"><span>枠の幅</span>${seg('layout.width',[['fit','内容に合わせる（7日とも最大幅にそろえる）'],['fill','エリアいっぱい']],L.width)}</label>
     <label class="field"><span>列の数</span>${seg('layout.cols',[[1,'1列（縦に7日）'],[2,'2列（左右に分けて配置）']],L.cols||1)}</label>
+    ${(L.cols||1)===2?`<label class="field"><span>2列の並び順</span>${seg('layout.order2',[['split','左に日〜水／右に木〜土'],['stagger','交互・右列を半段下げる']],L.order2||'split')}</label>`:''}
     <label class="field"><span>枠の高さ</span>${seg('layout.rowH',[['auto','予定の数に合わせる（文字が大きくなる）'],['equal','7日ともそろえる']],L.rowH)}</label>`;
   if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<p class="hint">横長の画像で左右が余るときは「2列」にすると、日曜〜水曜を左、木曜〜土曜を右に並べ、余った高さを使って1日の枠を高くします。文字をもっと大きくしたいときは、下の「時刻の並べ方」を「上下に並べる」にすると横幅に余裕ができます。</p>`;
   const HD=S.head;
-  h+=`</div><div class="grp"><h3>見出しと文字の大きさ <span class="en">HEADING</span></h3>
+  h+=`</div><div class="grp"><h3 id="headGrp">見出しと文字の大きさ <span class="en">HEADING</span></h3>
     <div class="row"><label class="field"><span>タイトル（日本語）</span><input type="text" data-bind="title.ja" id="h-tja" value="${esc(S.title.ja)}"></label><label class="field"><span>Title (English)</span><input type="text" data-bind="title.en" id="h-ten" value="${esc(S.title.en)}"></label></div>
     <label class="field"><span>見出しの位置</span>${seg('head.align',[['left','左'],['center','中央'],['right','右']],HD.align)}</label>
     <label class="field"><span>日付範囲（2026.10.18 – 10.24）の位置</span>${seg('head.rangePos',[['right','タイトルの右'],['below','タイトルの下']],HD.rangePos)}</label>
-    ${rangeRow('タイトル','head.titleScale',40,200,1,'%')}${rangeRow('小見出し','head.subScale',50,200,1,'%')}${rangeRow('日付範囲','head.rangeScale',50,200,1,'%')}${rangeRow('注意書き','head.footScale',50,200,1,'%')}${rangeRow('予定の文字','head.bodyScale',40,100,1,'%')}
+    ${S.lang==='both'?`<label class="field"><span>タイトルの順番</span>${seg('head.order',[['ja-en','日本語 → 英語'],['en-ja','英語 → 日本語']],HD.order||'ja-en')}</label>`:''}
+    <div class="row"><label class="field"><span>タイトル（日本語）のフォント</span><select data-bind="fonts.titleJa" id="h-fja">${fontOptions(S.fonts.titleJa||'','基本のフォント')}</select></label><label class="field"><span>Title (English) のフォント</span><select data-bind="fonts.titleEn" id="h-fen">${fontOptions(S.fonts.titleEn||'','基本のフォント')}</select></label></div>
+    ${S.lang!=='en'?rangeRow('タイトル（日本語）','head.jaScale',15,220,1,'%'):''}${S.lang!=='ja'?rangeRow('Title (English)','head.enScale',15,220,1,'%'):''}${rangeRow('小見出し','head.subScale',50,200,1,'%')}${rangeRow('日付範囲','head.rangeScale',50,200,1,'%')}${rangeRow('注意書き','head.footScale',50,200,1,'%')}${rangeRow('予定の文字','head.bodyScale',40,100,1,'%')}
     <div class="row">${check('小見出し（チャンネル名など）','head.showEyebrow')}${check('日付範囲','head.showRange')}${check('タイムゾーン表記','head.showLegend')}${check('注意書き','head.showNote')}</div>
     <p class="hint">「予定の文字」は自動で決まる最大サイズに対する割合です（100%＝入る限り最大）。見出しを大きくすると、そのぶん予定の文字は自動で小さくなります。</p></div>
   <div class="grp"><h3>時刻の並べ方 <span class="en">TIME</span></h3>
@@ -1732,14 +1815,30 @@ async function makePng(){
 }
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
 let lastPngUrl='';
+function avAABB(W,H){const b=avBox(W,H);if(!b)return null;const xs=b.co.map(c=>c.x),ys=b.co.map(c=>c.y);return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}}
+function preflight(){
+  const out=[];const{W,H}=dims();const res=LAST.res||{};
+  if(res.small)out.push({msg:'予定の文字が小さくなっています。予定の数・タイトルを減らすか、見出しを小さくすると読みやすくなります。',tab:'layout'});
+  if(res.trunc)out.push({msg:'長い配信タイトルが「…」で省略されています。',tab:'sched'});
+  if(S.img.avatar&&S.avatar.on&&IMG.avatar&&LAST.block){const a=avAABB(W,H),b=LAST.block;if(a){const ix=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)),iy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+    if(ix*iy>a.w*a.h*0.06)out.push({msg:S.avatar.front?'アバターが予定の上に重なっています。':'アバターの一部が予定の後ろに隠れています。',tab:'avatar'});
+    const vis=Math.max(0,Math.min(a.x+a.w,W)-Math.max(a.x,0))*Math.max(0,Math.min(a.y+a.h,H)-Math.max(a.y,0));if(vis<a.w*a.h*0.6)out.push({msg:'アバターの多くが画像の外にはみ出しています。',tab:'avatar'})}}
+  const bad=S.days.map((d,i)=>contrast(d.c.t,d.c.f)<3&&S.style.alpha>=50?WD_JA[i]:'').filter(Boolean);
+  if(bad.length)out.push({msg:`${bad.join('・')}曜日の文字の色が背景と近く、読みにくくなっています。`,tab:'design'});
+  if(weekEmpty(packWeek()))out.push({msg:'この週の予定がまだ入っていません。',tab:'sched'});
+  return out;
+}
+function preflightHtml(list){return list.length?`<div class="pf warn"><b>書き出す前に確認してください</b><ul>${list.map(x=>`<li>${esc(x.msg)} <button class="btn sm ghost" data-act="pffix" data-tab="${x.tab}">直す</button></li>`).join('')}</ul></div>`:'<div class="pf ok"><b>✓ レイアウトの崩れは見つかりませんでした</b></div>'}
 async function exportPng(){
   toast('画像を作成中…');
   const blob=await getPng();if(!blob){toast('画像を作れませんでした');return}
   if(lastPngUrl)URL.revokeObjectURL(lastPngUrl);lastPngUrl=URL.createObjectURL(blob);
   const share=canShareFiles();
-  openModal(`<h2>PNG画像ができました</h2><img class="result" src="${lastPngUrl}" alt="書き出したスケジュール画像">
+  const pf=preflight();
+  openModal(`<h2>${pf.length?'書き出す前の確認':'PNG画像ができました'}</h2><img class="result" src="${lastPngUrl}" alt="書き出したスケジュール画像">
+    ${preflightHtml(pf)}
     <p class="hint">${isIOS?'画像を長押しして「写真に保存」もできます。':'保存したPNGはそのままXやDiscordに投稿できます。'}</p>
-    <div class="acts">${share?'<button class="btn" data-act="sharepng">共有・写真に保存</button>':''}<button class="btn" data-act="copyimg">コピー</button><button class="btn primary" data-act="dl">ダウンロード</button></div>`);
+    <div class="acts">${share?'<button class="btn" data-act="sharepng">共有・写真に保存</button>':''}<button class="btn" data-act="copyimg">コピー</button><button class="btn primary" data-act="dl">${pf.length?'このまま':''}ダウンロード</button></div>`);
   $('#dialog').dataset.blob='1';EXPORT_BLOB=blob;
 }
 let EXPORT_BLOB=null;
@@ -1751,7 +1850,9 @@ async function copyImage(){
 let PNG_CACHE={key:'',blob:null},IMGV=0;
 function stateKey(){return JSON.stringify(S)+'|'+IMGV}
 async function getPng(){const k=stateKey();if(PNG_CACHE.key===k&&PNG_CACHE.blob)return PNG_CACHE.blob;const b=await makePng();PNG_CACHE={key:k,blob:b};return b}
+async function pfConfirm(){const pf=preflight();if(!pf.length)return true;return await confirmBox('このまま投稿しますか？',pf.map(x=>'・'+x.msg).join('\n'),'このまま進む')}
 async function shareToX(){
+  if(!(await pfConfirm()))return;
   const text=$('#postText')?.value||genPost();
   const ready=PNG_CACHE.key===stateKey()&&PNG_CACHE.blob;
   const blob=ready?PNG_CACHE.blob:await getPng();
@@ -1760,6 +1861,7 @@ async function shareToX(){
   catch(e){if(e&&e.name==='NotAllowedError')toast('画像の準備ができました。もう一度押してください');else if(e&&e.name!=='AbortError')toast('共有できませんでした')}
 }
 async function openIntent(){
+  if(!(await pfConfirm()))return;
   const text=$('#postText')?.value||genPost();
   const url='https://twitter.com/intent/tweet?text='+encodeURIComponent(text);
   const w=window.open(url,'_blank');if(w)try{w.opener=null}catch(e){}
@@ -1833,6 +1935,7 @@ modal.addEventListener('click',async e=>{
   if(a.dataset.act==='dl'&&EXPORT_BLOB){download(EXPORT_BLOB,fileName());toast('保存しました')}
   if(a.dataset.act==='sharepng'&&EXPORT_BLOB){try{await navigator.share({files:[new File([EXPORT_BLOB],fileName(),{type:'image/png'})]})}catch(err){}}
   if(a.dataset.act==='copyimg')copyImage();
+  if(a.dataset.act==='pffix'){closeModal();TAB=a.dataset.tab;renderTab();scrollTo({top:0,behavior:'smooth'})}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeModal();if(e.key==='Enter'&&e.target.id==='ptagInput'&&!e.isComposing){e.preventDefault();addPostTag()}});
 let toastT=0;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
@@ -1859,6 +1962,7 @@ function onSeg(b){
   const cur=getPath(S,k);if(typeof cur==='number')v=+v;else if(typeof cur==='boolean')v=v==='true';
   setPath(S,k,v);
   if(k==='lang'||k.startsWith('post.'))postDirty=false;
+  if(k==='lang'){const H=S.head;if(v==='ja'&&H.jaScale<60)H.jaScale=100;if(v==='en'&&H.enScale<60)H.enScale=100;if(v==='both'&&H.jaScale>=90&&H.enScale>=90)H.jaScale=35}
   changed(true);
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-seg]');if(b&&!b.disabled&&!modal.contains(b))onSeg(b)});
@@ -1874,6 +1978,7 @@ body.addEventListener('input',e=>{
     save();schedule();return;
   }
   const dayEl=el.closest('[data-day]');
+  if(dayEl&&el.dataset.spf&&el.type==='text'){S.days[+dayEl.dataset.day].sp.badge=el.value;save();schedule();return}
   if(dayEl&&el.dataset.dcb){const i=+dayEl.dataset.day;S.days[i].dc=el.value;save();schedule();return}
   if(dayEl&&el.dataset.dc){const i=+dayEl.dataset.day;S.days[i].c[el.dataset.dc]=el.value;S.style.palette='custom';const cr=dayEl.querySelector('[data-cr]');if(cr)cr.innerHTML=crBadge(S.days[i].c);save();schedule();return}
   if(dayEl&&el.dataset.df&&el.type==='text'){S.days[+dayEl.dataset.day][el.dataset.df]=el.value;postDirty=false;save();schedule();return}
@@ -1893,7 +1998,7 @@ body.addEventListener('input',e=>{
 body.addEventListener('change',async e=>{
   const el=e.target;
   if(el.dataset.bind){
-    if(/^style\.((sun|sat|hol|wk)Color|holOn|bandFix)$/.test(el.dataset.bind)){save();schedule();renderTab();return}
+    if(/^style\.((sun|sat|hol|wk)Color|holOn|bandFix)$/.test(el.dataset.bind)||el.dataset.bind.startsWith('fonts.')){save();schedule();renderTab();return}
     if((el.dataset.bind.startsWith('avatar.crop.')||el.dataset.bind==='avatar.trim')&&S.avatar.autofit){fitAvatar();save();schedule();syncDragInputs()}
     if(el.dataset.bind.startsWith('post.')){postDirty=false;save();refreshPost();return}
     if(el.type==='checkbox'||el.tagName==='SELECT'){if(el.dataset.bind==='tz.b.on')postDirty=false;changed(el.dataset.bind==='tz.b.on'||el.dataset.bind==='post.withSecond'||el.dataset.bind==='tz.paren')}
@@ -1907,6 +2012,7 @@ body.addEventListener('change',async e=>{
   if(el.id==='weekDate'){if(el.value){const[y,m,d]=el.value.split('-').map(Number);switchWeek(sundayOf(new Date(y,m-1,d)))}return}
   if(el.dataset.tz){const tz=S.tz[el.dataset.tz];tz[el.dataset.tf]=el.value;if(el.dataset.tf==='zone')tz.label='';postDirty=false;changed(true);return}
   const dayEl=el.closest('[data-day]'),slotEl=el.closest('[data-slot]');
+  if(dayEl&&el.dataset.spf&&el.type!=='text'){const sp=S.days[+dayEl.dataset.day].sp;const f=el.dataset.spf;sp[f]=el.type==='checkbox'?el.checked:el.value;save();schedule();if(f==='on')renderTab();return}
   if(dayEl&&el.dataset.dcb){renderTab();return}
   if(dayEl&&el.dataset.df==='off'){const i=+dayEl.dataset.day;S.days[i].off=el.checked;postDirty=false;save();schedule();rerenderDay(i);return}
   if(dayEl&&slotEl&&el.dataset.sf){
@@ -1942,7 +2048,9 @@ body.addEventListener('click',async e=>{
     case'delwk':if(await confirmBox('この週の記録を削除しますか？',weekLabel(a.dataset.w)+' の予定が消えます。','削除する')){delete S.weeks[a.dataset.w];changed(true)}break;
     case'copyprev':{const pw=addDaysStr(S.weekStart,-7);storeWeek();const src=S.weeks[pw];if(!src){toast('前の週の予定がありません');break}
       if(!weekEmpty(packWeek())&&!(await confirmBox('前の週の予定をコピーしますか？','この週に入っている予定は置き換わります。','コピーする')))break;
-      S.days.forEach((d,i)=>{const x=src.days[i];d.off=x.off;d.offNote=x.offNote;d.offNoteEn=x.offNoteEn;d.slots=clone(x.slots)});postDirty=false;changed(true);toast('前の週の予定をコピーしました');break}
+      S.days.forEach((d,i)=>{const x=src.days[i];d.off=x.off;d.offNote=x.offNote;d.offNoteEn=x.offNoteEn;d.slots=clone(x.slots);d.sp=x.sp?clone(x.sp):d.sp});postDirty=false;changed(true);toast('前の週の予定をコピーしました');break}
+    case'bulkfont':{const id=$('#bulkFont').value;if(FONTS[id]){S.style.font=id;S.style.num='same'}else{S.style.num=id}S.fonts={};changed(true);toast('すべての文字のフォントを変更しました');break}
+    case'fontsreset':S.fonts={};changed(true);break;
     case'resetwk':resetWeekdayColors();changed(true);toast('曜日ラベルの色を初期化しました（戻るボタンで元に戻せます）');break;
     case'resetdays':resetDayColors();resetWeekdayColors();changed(true);toast('1日ごとの色を初期化しました（戻るボタンで元に戻せます）');break;
     case'dcauto':S.days[i].dc='';changed(true);break;
@@ -1972,7 +2080,7 @@ body.addEventListener('click',async e=>{
     case'preset':{const p=S.presets[+a.dataset.p];if(S.days[i].slots.length>=3)break;S.days[i].slots.push({tag:p.tag,t:p.t,e:p.e||'',title:p.title||'',titleEn:p.titleEn||''});postDirty=false;save();schedule();rerenderDay(i);break}
     case'addslot':if(S.days[i].slots.length<3){S.days[i].slots.push({tag:'',t:'',e:'',title:'',titleEn:''});save();schedule();rerenderDay(i)}break;
     case'delslot':{const j=+a.closest('[data-slot]').dataset.slot;S.days[i].slots.splice(j,1);postDirty=false;save();schedule();rerenderDay(i);break}
-    case'clearall':if(await confirmBox('この週の予定をクリアしますか？','表示中の週の時間・タイトル・お休み設定が消えます。ほかの週とデザインは残ります。','クリアする')){S.days.forEach(d=>{d.slots=[];d.off=false;d.offNote='';d.offNoteEn=''});delete S.weeks[S.weekStart];postDirty=false;changed(true)}break;
+    case'clearall':if(await confirmBox('この週の予定をクリアしますか？','表示中の週の時間・タイトル・お休み設定が消えます。ほかの週とデザインは残ります。','クリアする')){S.days.forEach(d=>{d.slots=[];d.off=false;d.offNote='';d.offNoteEn='';d.sp={on:false,badge:'',font:'',glow:true}});delete S.weeks[S.weekStart];postDirty=false;changed(true)}break;
     case'pal':applyPalette(a.dataset.id);changed(true);break;
     case'autopal':autoPalette($('#autoColor').value,a.dataset.tone);changed(true);break;
     case'rmimg':await removeImage(a.dataset.k);renderTab();schedule();break;
@@ -2147,27 +2255,53 @@ body.addEventListener('drop',async e=>{const z=e.target.closest('[data-drop]');i
 
 /* ---------- drag the background image on the preview ---------- */
 function bgDragOn(){return TAB==='bg'&&S.style.bgSrc==='image'&&S.img.bg&&!!IMG.bg}
-function dragTarget(){if(bgDragOn())return'bg';if(TAB==='avatar'&&S.img.avatar&&IMG.avatar&&S.avatar.on)return'avatar';return null}
+function dragTarget(){if(bgDragOn())return'bg';if(TAB==='avatar'&&S.img.avatar&&IMG.avatar&&S.avatar.on)return'avatar';if(TAB==='layout'&&S.layout.mode!=='land-full'&&S.layout.mode!=='port-full')return'avarea';return null}
+function areaLine(W,H){const a=S.layout.avatar/100,m=S.layout.mode;return m==='land-right'?{v:true,p:W*(1-a)}:m==='land-left'?{v:true,p:W*a}:m==='port-bottom'?{v:false,p:H*(1-a)}:{v:false,p:H*a}}
+function drawAreaHandle(ctx,W,H){const L=areaLine(W,H),u=Math.min(W,H)/400;ctx.save();ctx.strokeStyle='rgba(255,79,139,.95)';ctx.lineWidth=u*2.2;ctx.beginPath();
+  if(L.v){ctx.moveTo(L.p,0);ctx.lineTo(L.p,H)}else{ctx.moveTo(0,L.p);ctx.lineTo(W,L.p)}ctx.stroke();
+  const cx=L.v?L.p:W/2,cy=L.v?H/2:L.p,gw=L.v?u*16:u*44,gh=L.v?u*44:u*16;rr(ctx,cx-gw/2,cy-gh/2,gw,gh,u*8);ctx.fillStyle='#ffffff';ctx.fill();ctx.stroke();
+  T(ctx,L.v?'⇔':'⇕',cx,cy,F('b',u*12),'rgba(255,79,139,1)','center','middle',null);ctx.restore()}
 const PTR=new Map();let pinch0=null;
 function cvScale(){const r=cv.getBoundingClientRect();return cv.width/r.width}
 function dragProps(t){return t==='bg'?{o:S.style,x:'bgX',y:'bgY',s:'bgScale',lim:[-50,150],sl:[10,400]}:{o:S.avatar,x:'x',y:'y',s:'scale',lim:[-30,130],sl:[5,400]}}
 function syncDragInputs(){syncBgInputs();for(const k of['x','y','scale','rot']){const el=document.getElementById('r-avatar-'+k);if(el){el.value=S.avatar[k];const o=el.parentElement.querySelector('output');if(o)o.textContent=(Math.round(S.avatar[k]*10)/10)+(k==='rot'?'°':'%')}}}
 let PMODE='move',ROT0=null;
 function cvPt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height}}
-cv.addEventListener('pointerdown',e=>{const t=dragTarget();if(!t)return;e.preventDefault();cv.setPointerCapture?.(e.pointerId);PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});
+let DOWN=null,SC0=null;
+cv.addEventListener('pointerdown',e=>{DOWN={x:e.clientX,y:e.clientY,moved:false};const t=dragTarget();if(!t)return;const{W,H}=dims();const p=cvPt(e);
+  if(t==='avarea'){const L=areaLine(W,H);if(Math.abs((L.v?p.x:p.y)-L.p)>Math.min(W,H)*0.05)return;e.preventDefault();cv.setPointerCapture?.(e.pointerId);PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});PMODE='avarea';return}
+  e.preventDefault();cv.setPointerCapture?.(e.pointerId);PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});
   PMODE='move';
-  if(t==='avatar'&&PTR.size===1){const{W,H}=dims();const b=avBox(W,H);const p=cvPt(e);if(b&&Math.hypot(p.x-b.hx,p.y-b.hy)<b.hr*2.2){PMODE='rotate';ROT0={a0:Math.atan2(p.y-b.cy,p.x-b.cx),r0:S.avatar.rot||0}}}
-  if(PTR.size===2){const[a,b]=[...PTR.values()];const P=dragProps(t);pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),s:P.o[P.s],ang:Math.atan2(b.y-a.y,b.x-a.x),r:S.avatar.rot||0}}});
+  if(t==='avatar'&&PTR.size===1){const b=avBox(W,H);if(b){
+    if(Math.hypot(p.x-b.hx,p.y-b.hy)<b.hr*2.2){PMODE='rotate';ROT0={a0:Math.atan2(p.y-b.cy,p.x-b.cx),r0:S.avatar.rot||0}}
+    else if(b.hco.some(c=>Math.hypot(p.x-c.x,p.y-c.y)<b.hr*2.4)){PMODE='scale';SC0={d:Math.max(1,Math.hypot(p.x-b.cx,p.y-b.cy)),s:S.avatar.scale}}}}
+  if(PTR.size===2&&t!=='avarea'){const[a,b]=[...PTR.values()];const P=dragProps(t);pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),s:P.o[P.s],ang:Math.atan2(b.y-a.y,b.x-a.x),r:S.avatar.rot||0}}});
 cv.addEventListener('pointermove',e=>{
-  if(!PTR.has(e.pointerId))return;const t=dragTarget();if(!t)return;const P=dragProps(t);
+  if(DOWN&&Math.hypot(e.clientX-DOWN.x,e.clientY-DOWN.y)>6)DOWN.moved=true;
+  if(!PTR.has(e.pointerId))return;const t=dragTarget();if(!t)return;
   const prev=PTR.get(e.pointerId);PTR.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  const{W,H}=dims();
-  if(PTR.size===1&&PMODE==='rotate'&&ROT0){const b=avBox(W,H);const p=cvPt(e);let r=ROT0.r0+(Math.atan2(p.y-b.cy,p.x-b.cx)-ROT0.a0)*180/Math.PI;if(e.shiftKey)r=Math.round(r/15)*15;S.avatar.rot=normRot(r)}
+  const{W,H}=dims();const p=cvPt(e);
+  if(PMODE==='avarea'){const m=S.layout.mode;let a=m==='land-right'?1-p.x/W:m==='land-left'?p.x/W:m==='port-bottom'?1-p.y/H:p.y/H;S.layout.avatar=Math.round(clamp(a,0.15,0.7)*1000)/10;const el=document.getElementById('r-layout-avatar');if(el){el.value=S.layout.avatar;const o=el.parentElement.querySelector('output');if(o)o.textContent=S.layout.avatar+'%'}schedule();return}
+  const P=dragProps(t);
+  if(PTR.size===1&&PMODE==='rotate'&&ROT0){const b=avBox(W,H);let r=ROT0.r0+(Math.atan2(p.y-b.cy,p.x-b.cx)-ROT0.a0)*180/Math.PI;if(e.shiftKey)r=Math.round(r/15)*15;S.avatar.rot=normRot(r)}
+  else if(PTR.size===1&&PMODE==='scale'&&SC0){const b=avBox(W,H);S.avatar.scale=clamp(SC0.s*Math.hypot(p.x-b.cx,p.y-b.cy)/SC0.d,5,400)}
   else if(PTR.size===1){const k=cvScale();P.o[P.x]=clamp(P.o[P.x]+(e.clientX-prev.x)*k/W*100,P.lim[0],P.lim[1]);P.o[P.y]=clamp(P.o[P.y]+(e.clientY-prev.y)*k/H*100,P.lim[0],P.lim[1])}
   else if(PTR.size===2&&pinch0){const[a,b]=[...PTR.values()];P.o[P.s]=clamp(pinch0.s*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch0.d),P.sl[0],P.sl[1]);
     if(t==='avatar')S.avatar.rot=normRot(pinch0.r+(Math.atan2(b.y-a.y,b.x-a.x)-pinch0.ang)*180/Math.PI)}
   schedule();
 });
+cv.addEventListener('click',e=>{
+  if(DOWN&&DOWN.moved)return;const{W,H}=dims();const p=cvPt(e);const t=dragTarget();
+  if(t==='avatar'){const b=avBox(W,H);if(b){const lx=(p.x-b.cx)*Math.cos(-b.a)-(p.y-b.cy)*Math.sin(-b.a),ly=(p.x-b.cx)*Math.sin(-b.a)+(p.y-b.cy)*Math.cos(-b.a);if(Math.abs(lx)<=b.w/2&&Math.abs(ly)<=b.h/2)return}}
+  if(t==='avarea'){const L=areaLine(W,H);if(Math.abs((L.v?p.x:p.y)-L.p)<Math.min(W,H)*0.05)return}
+  const hit=(LAST.hits||[]).find(h=>p.x>=h.x&&p.x<=h.x+h.w&&p.y>=h.y&&p.y<=h.y+h.h);if(!hit)return;
+  editFromPreview(hit);
+});
+function editFromPreview(hit){
+  if(hit.type==='day'){TAB='sched';renderTab();const el=body.querySelector(`.day[data-day="${hit.i}"]`);if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);const inp=el.querySelector('input[type=text]');if(inp&&!mqMobile.matches)setTimeout(()=>inp.focus({preventScroll:true}),350)}toast(`${dayLabel(hit.i)}の予定を編集できます`)}
+  else if(hit.type==='head'){TAB='layout';renderTab();const g=document.getElementById('headGrp');if(g){g.scrollIntoView({block:'start',behavior:'smooth'});g.parentElement.classList.add('flash');setTimeout(()=>g.parentElement.classList.remove('flash'),1500)}toast('タイトルと文字の大きさを編集できます')}
+  else if(hit.type==='foot'){TAB='settings';renderTab();const n=document.getElementById('s-nja');if(n){n.scrollIntoView({block:'center',behavior:'smooth'});n.closest('.grp').classList.add('flash');setTimeout(()=>n.closest('.grp').classList.remove('flash'),1500)}toast('注意書きを編集できます')}
+}
 document.addEventListener('keydown',e=>{
   if(dragTarget()!=='avatar'||/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')&&document.activeElement.type!=='range'&&document.activeElement.type!=='checkbox')return;
   if(document.activeElement?.type==='range')return;
@@ -2175,9 +2309,9 @@ document.addEventListener('keydown',e=>{
   if(m){e.preventDefault();nudgeAv(m[0],m[1]);return}
   if(e.key==='['){e.preventDefault();rotAv(e.shiftKey?-15:-1)}if(e.key===']'){e.preventDefault();rotAv(e.shiftKey?15:1)}
 });
-const ptrEnd=e=>{if(!PTR.has(e.pointerId))return;PTR.delete(e.pointerId);if(!PTR.size){PMODE='move';ROT0=null}if(PTR.size<2)pinch0=null;if(!PTR.size){save();syncDragInputs()}};
+const ptrEnd=e=>{if(!PTR.has(e.pointerId))return;PTR.delete(e.pointerId);if(!PTR.size){if(PMODE==='avarea'&&S.img.avatar&&S.avatar.autofit)fitAvatar();PMODE='move';ROT0=null;SC0=null}if(PTR.size<2)pinch0=null;if(!PTR.size){save();syncDragInputs()}};
 cv.addEventListener('pointerup',ptrEnd);cv.addEventListener('pointercancel',ptrEnd);
-cv.addEventListener('wheel',e=>{const t=dragTarget();if(!t)return;e.preventDefault();const P=dragProps(t);P.o[P.s]=clamp(P.o[P.s]*Math.exp(-e.deltaY*0.0012),P.sl[0],P.sl[1]);schedule();save();syncDragInputs()},{passive:false});
+cv.addEventListener('wheel',e=>{const t=dragTarget();if(!t||t==='avarea')return;e.preventDefault();const P=dragProps(t);P.o[P.s]=clamp(P.o[P.s]*Math.exp(-e.deltaY*0.0012),P.sl[0],P.sl[1]);schedule();save();syncDragInputs()},{passive:false});
 
 /* =========================================================
    boot
