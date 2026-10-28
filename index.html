@@ -164,7 +164,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .ico-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;font-size:11.5px;font-weight:700;color:var(--fg)}
 .ico-btn img{width:56px;height:38px}.ico-btn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.shrow{display:grid;grid-template-columns:6.2em minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center}
+.shrow{display:grid;grid-template-columns:6.2em minmax(0,1fr) minmax(0,1fr) 5.4em;gap:6px;align-items:center}
 .shrow b{font:700 13px var(--f-num)}
 .avprev{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .avprev figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -275,6 +275,8 @@ input[type=time]::-webkit-datetime-edit{padding:0}
 
 /* tags / presets */
 .list{display:flex;flex-direction:column;gap:6px}
+.dcolw{display:flex;align-items:center;gap:4px;justify-content:flex-start}.dcolw input[type=color]{width:40px;height:34px}
+@media (max-width:480px){.shrow{grid-template-columns:4.6em minmax(0,1fr) minmax(0,1fr) 5.2em}}
 .accs{display:flex;flex-wrap:wrap;gap:6px}
 .acc{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 8px;background:var(--bg);font:700 13px inherit;cursor:pointer;color:var(--muted)}
 .acc::before{content:'';width:15px;height:15px;border-radius:5px;border:2px solid currentColor;box-sizing:border-box;flex:none}
@@ -488,7 +490,7 @@ function zoneName(z){for(const[,list]of ZONES)for(const[id,n]of list)if(id===z)r
 function storeWeekView(){}
 async function setWeekDow(nd){
   const od=S.weekDow||0;if(nd===od)return;storeWeek();const delta=(nd-od+7)%7;const rot=a=>a.map((_,i)=>a[(i+delta)%7]);
-  const design=S.days.map(d=>({c:d.c,dc:d.dc,shape:d.shape,deco:d.deco}));const nd2=rot(design);S.days.forEach((d,i)=>Object.assign(d,nd2[i]));
+  const design=S.days.map(d=>({c:d.c,dc:d.dc,shape:d.shape,deco:d.deco,dcol:d.dcol||''}));const nd2=rot(design);S.days.forEach((d,i)=>Object.assign(d,nd2[i]));
   // frame images follow their weekday
   const blobs=[];for(let i=0;i<7;i++)blobs.push(S.img.frame[i]?await DB.get('frame'+i):null);const imgs=[0,1,2,3,4,5,6].map(i=>IMG['frame'+i]);
   const rb=rot(blobs),ri=rot(imgs);for(let i=0;i<7;i++){await DB.del('frame'+i);if(rb[i]){await DB.put('frame'+i,rb[i]);IMG['frame'+i]=ri[i];S.img.frame[i]=true}else{delete IMG['frame'+i];S.img.frame[i]=false}}
@@ -548,7 +550,9 @@ function src_has(s,k){return!!(s&&s._raw&&s._raw[k]!==undefined)}
 function normalize(s){
   const raw=s&&s.style?s.style:{};const d=defaultState();s=merge(d,s);s._raw=raw;
   if(!Array.isArray(s.days)||s.days.length!==7)s.days=d.days;
-  s.days=s.days.map((x,i)=>({shape:x.shape||'',deco:x.deco||'',sp:x.sp,dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
+  const okD=v=>v&&v!=='moonsun'?v:'';
+  s.days=s.days.map((x,i)=>({shape:x.shape||'',deco:okD(x.deco),dcol:x.dcol||'',sp:x.sp,dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
+  if(s.style.deco==='moonsun')s.style.deco='none';if(s.style.dpre==='moonsun')s.style.dpre='';s.days.forEach(x=>{if(x.sp&&x.sp.deco==='moonsun')x.sp.deco=''});
   if(!s.tags.length)s.tags=d.tags;
   if(!s.weeks||typeof s.weeks!=='object'||Array.isArray(s.weeks))s.weeks={};
   if(s.layout.order2==='staggerRev'||s.layout.order2==='zigzag')s.layout.order2='stagger';
@@ -954,7 +958,7 @@ function onAvatarLoaded(im){
 }
 let CARD_EAR=null,SHAPE_FORCE=null;
 const SHAPES=[['rect','角丸'],['pill','カプセル'],['cat','ネコ耳'],['bunny','うさ耳'],['bear','くま耳'],['ribbon','リボン（帯）'],['arrow','矢印'],['ticket','チケット'],['bubble','吹き出し'],['tab','タブ'],['cut','カット'],['scallop','スカラップ']];
-const DECOS=[['none','なし'],['bow','リボン'],['star','星'],['sparkle','キラキラ'],['heart','ハート'],['crown','王冠'],['flower','花'],['sakura','さくら'],['clover','クローバー'],['paw','肉球'],['music','音符'],['moon','三日月'],['gem','ダイヤ'],['tape','マステ'],['pin','画びょう'],['moonsun','月と太陽']];
+const DECOS=[['none','なし'],['bow','リボン'],['star','星'],['sparkle','キラキラ'],['heart','ハート'],['crown','王冠'],['flower','花'],['sakura','さくら'],['clover','クローバー'],['paw','肉球'],['music','音符'],['moon','三日月'],['gem','ダイヤ'],['tape','マステ'],['pin','画びょう']];
 const SO_DEF={earH:100,earW:100,earTilt:6,earGap:100,notch:100,tab:100,tail:100,tailPos:8,ticket:100,cut:100,scallop:100};
 function SO(){return Object.assign({},SO_DEF,S.style.so||{})}
 const PRIO_DEF=['sp','day','all'],PRIO_L={sp:['特別な日の設定','［特別な日の装飾］で選んだ形・飾り'],day:['日ごとの設定','曜日ごとに選んだ形・飾り・枠画像'],all:['まとめて設定（全日）','全日共通の形・飾り・枠画像']};
@@ -965,7 +969,8 @@ function offA(k){return!!(S.style.off&&S.style.off[k])}
 function layerVal(i,kind){const d=S.days[i]||{},st=S.style,sp=d.sp&&d.sp.on?d.sp:null;
   for(const L of prioList()){if(L==='sp'&&sp&&sp[kind])return sp[kind];if(L==='day'&&d[kind])return d[kind];if(L==='all'&&st[kind])return st[kind]}return''}
 function shapeOf(i){if(SHAPE_FORCE)return SHAPE_FORCE;if(offA('shape'))return'rect';return layerVal(i,'shape')||'rect'}
-function decoOf(i){if(offA('deco'))return'none';return layerVal(i,'deco')||'none'}
+const DECO_OK=new Set(DECOS.map(x=>x[0]));
+function decoOf(i){if(offA('deco'))return'none';const v=layerVal(i,'deco');return DECO_OK.has(v)?v:'none'}
 function frameImgOf(i){if(offA('img'))return null;const day=S.img.frame[i]&&IMG['frame'+i],all=S.img.frameAll&&IMG.frameAll;
   for(const L of prioList()){if(L==='day'&&day)return day;if(L==='all'&&all)return all}return null}
 const EARS={cat:1,bunny:1,bear:1};
@@ -1035,9 +1040,6 @@ function decoShape(ctx,type,s){
 function drawDecoAt(ctx,type,ax,ay,s,col,tilt){
   if(!type||type==='none')return;ctx.save();ctx.translate(ax,ay);ctx.rotate(tilt||0);ctx.lineJoin='round';
   const ol=autoInk(col)==='#ffffff'?'rgba(255,255,255,.95)':'rgba(20,18,28,.85)';
-  if(type==='moonsun'){ctx.beginPath();ctx.arc(-s*0.22,0,s*0.22,0,7);ctx.fillStyle='#f2b84b';ctx.fill();ctx.lineWidth=s*0.05;ctx.strokeStyle='rgba(20,18,28,.75)';ctx.stroke();
-    for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.beginPath();ctx.moveTo(-s*0.22+Math.cos(a)*s*0.29,Math.sin(a)*s*0.29);ctx.lineTo(-s*0.22+Math.cos(a)*s*0.4,Math.sin(a)*s*0.4);ctx.strokeStyle='#f2b84b';ctx.lineWidth=s*0.06;ctx.stroke()}
-    ctx.beginPath();ctx.arc(s*0.26,0,s*0.25,0,7);ctx.arc(s*0.36,-s*0.06,s*0.21,0,7,true);ctx.fillStyle='#2b2630';ctx.fill('evenodd');ctx.lineWidth=s*0.04;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.stroke();ctx.restore();return}
   if(type==='tape'){const w=s*1.35,h=s*0.42,z=s*0.05;ctx.rotate(-0.06);ctx.beginPath();ctx.moveTo(-w/2,-h/2);for(let k=0;k<=6;k++)ctx.lineTo(-w/2+(k%2?z:0),-h/2+h*k/6);ctx.lineTo(w/2,h/2);for(let k=6;k>=0;k--)ctx.lineTo(w/2-(k%2?z:0),-h/2+h*k/6);ctx.closePath();
     ctx.fillStyle=rgba(col,0.78);ctx.shadowColor='rgba(0,0,0,.12)';ctx.shadowBlur=s*0.08;ctx.fill();ctx.shadowColor='transparent';ctx.save();ctx.clip();ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=s*0.07;for(let k=-4;k<=4;k++){ctx.beginPath();ctx.moveTo(k*s*0.18-h,-h);ctx.lineTo(k*s*0.18+h,h);ctx.stroke()}ctx.restore();ctx.restore();return}
   if(type==='pin'){ctx.beginPath();ctx.moveTo(-s*0.04,s*0.08);ctx.lineTo(0,s*0.42);ctx.lineTo(s*0.04,s*0.08);ctx.closePath();ctx.fillStyle='#9aa0a8';ctx.fill();
@@ -1050,7 +1052,7 @@ function drawDecoAt(ctx,type,ax,ay,s,col,tilt){
   if(type==='paw'){ctx.beginPath();ctx.ellipse(-s*0.06,s*0.1,s*0.07,s*0.05,-0.5,0,7);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fill()}
   ctx.restore();
 }
-function decoColor(i){const st=S.style;if(st.decoColor)return st.decoColor;const c=S.days[i].c.b,bc=bandColor(i);return contrast(c,bc)>=1.6?c:mixHex(bc,autoInk(bc)==='#ffffff'?'#ffffff':'#000000',0.45)}
+function decoColor(i){const st=S.style,dc=S.days[i]&&S.days[i].dcol;if(dc)return dc;if(st.decoColor)return st.decoColor;const c=S.days[i].c.b,bc=bandColor(i);return contrast(c,bc)>=1.6?c:mixHex(bc,autoInk(bc)==='#ffffff'?'#ffffff':'#000000',0.45)}
 function drawDeco(ctx,i,x,y,w,h,u){const t=decoOf(i);if(t==='none')return;const st=S.style,s=u*1.05*(st.decoSize||100)/100,pos=st.decoPos||'tr';
   const ax=pos==='tl'?x+s*0.35:pos==='tc'?x+w/2:x+w-s*0.35,ay=y+s*0.05;drawDecoAt(ctx,t,ax,ay,s,decoColor(i),t==='tape'?0:pos==='tl'?-0.25:pos==='tr'?0.25:0)}
 function spGlow(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),sp=S.days[i].sp;if(!sp.glow||offA('glow'))return;ctx.save();ctx.shadowColor=rgba(bc,1);ctx.shadowBlur=u*1.8;ctx.lineWidth=u*0.22;for(let n=0;n<3;n++){cardPath(ctx,x,y,w,h,r,i,u);ctx.strokeStyle=rgba(bc,0.95);ctx.stroke()}ctx.restore()}
@@ -1601,13 +1603,11 @@ const DPRE={
     st:{bg1:'#151425',bg2:'#2a2550',bgType:'grad',bgPattern:'grid',ink:'#fff1e8',panel:'#1d2b53',alpha:94,font:'dot',num:'same',shape:'cut',deco:'gem',decoPos:'tr',radius:0,border:4,shadow:false,band:true}},
   chalk:{name:'カフェの黒板',days:Array(7).fill(0).map(()=>({b:'#f3eedf',f:'#34463c',t:'#f5f1e6'})),
     st:{bg1:'#2f3e36',bg2:'#24312a',bgType:'vgrad',bgPattern:'none',ink:'#f5f1e6',panel:'#34463c',alpha:92,font:'yusei',num:'same',shape:'rect',deco:'pin',decoPos:'tc',radius:16,border:0,shadow:true,band:true,stitch:true}},
-  moonsun:{name:'月と太陽（ベージュ×黒）',days:Array(7).fill(0).map(()=>({b:'#1b1820',f:'#fbf6ec',t:'#1b1820'})),
-    st:{bg1:'#dcc8a6',bg2:'#17151b',bgType:'diag',bgPattern:'none',ink:'#1b1820',panel:'#fbf6ec',alpha:96,font:'kaisei',num:'montserrat',shape:'rect',deco:'moonsun',decoPos:'tr',decoSize:150,radius:24,border:2.5,shadow:true,band:true,plate:true}},
 };
 function applyDPre(id,st){
   st=st||S;const P=DPRE[id];if(!P)return;
   const dowAt=i=>{const[y,m,d]=st.weekStart.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+i)).getUTCDay()};
-  st.days.forEach((d,i)=>{d.c=clone(P.days[dowAt(i)]);d.dc='';d.shape='';d.deco=''});
+  st.days.forEach((d,i)=>{d.c=clone(P.days[dowAt(i)]);d.dc='';d.shape='';d.deco='';d.dcol=''});
   Object.assign(st.style,{palette:'custom',basePal:'',decoColor:'',decoSize:100,sunColor:'',satColor:'',holColor:'',wkColor:'',plate:false,outline:false,stitch:false,neon:false,off:{},so:Object.assign({},SO_DEF),bgSrc:st.style.bgSrc==='image'&&st.img&&st.img.bg?'image':'color'},clone(P.st));
   st.fonts={};st.style.dpre=id;
 }
@@ -1678,8 +1678,8 @@ function tabDesign(){
     <div class="row"><label class="check"><input type="color" data-bind="style.decoColor" id="s-decoc" value="${st.decoColor||decoColor(0)}"> 飾りの色</label>${st.decoColor?'<button class="btn sm ghost" data-act="decoauto">自動の色に戻す</button>':'<span class="hint">今は自動（各日の色に合わせる）</span>'}</div>`:''}
     ${geoHtml()}
     <div class="sub-h">日ごとに変える</div>
-    <p class="hint">まとめて設定したあと、好きな日だけ別の形・飾りにできます（曜日ごとに保存）。</p>
-    <div class="list">${S.days.map((d,i)=>`<div class="shrow" data-day="${i}"><b>${dayLabel(i)} ${WD_JA[dowOf(i)]}</b><select data-shp="shape" aria-label="枠の形">${so(d.shape||'','まとめて設定（'+(SHAPES.find(x=>x[0]===st.shape)||SHAPES[0])[1]+'）')}</select><select data-shp="deco" aria-label="飾り">${dop(d.deco||'','まとめて設定（'+(DECOS.find(x=>x[0]===st.deco)||DECOS[0])[1]+'）')}</select></div>`).join('')}</div>
+    <p class="hint">まとめて設定したあと、好きな日だけ別の形・飾り・飾りの色にできます（曜日ごとに保存）。右端の色をタップすると、その日の飾りだけ色を変えられます。</p>
+    <div class="list">${S.days.map((d,i)=>`<div class="shrow" data-day="${i}"><b>${dayLabel(i)} ${WD_JA[dowOf(i)]}</b><select data-shp="shape" aria-label="枠の形">${so(d.shape||'','まとめて設定（'+(SHAPES.find(x=>x[0]===st.shape)||SHAPES[0])[1]+'）')}</select><select data-shp="deco" aria-label="飾り">${dop(d.deco||'','まとめて設定（'+(DECOS.find(x=>x[0]===st.deco)||DECOS[0])[1]+'）')}</select><span class="dcolw">${decoOf(i)==='none'?'<em class="hint">飾りなし</em>':`<input type="color" data-shp="dcol" value="${decoColor(i)}" aria-label="${dayLabel(i)}の飾りの色" title="この日の飾りの色">${d.dcol?`<button type="button" class="mini-reset" data-act="dcolauto" title="まとめて設定の色に戻す">戻す</button>`:''}`}</span></div>`).join('')}</div>
     <div class="row"><button class="btn sm" data-act="shpdays">日ごとの形・飾りをリセット</button><button class="btn sm ghost danger" data-act="shpall">形と飾りをすべて初期化</button></div>
     <p class="hint">ネコ耳・うさ耳・くま耳・タブは日付ボックスの上に、吹き出しのしっぽとスカラップは下に出るので、そのぶん枠どうしの間が少し広がります。</p></div>`;
   h+=`<div class="grp" id="prioGrp"><h3>枠のカスタムの優先順位 <span class="en">PRIORITY</span></h3>
@@ -2404,6 +2404,7 @@ body.addEventListener('input',e=>{
     save();schedule();return;
   }
   const dayEl=el.closest('[data-day]');
+  if(dayEl&&el.dataset.shp==='dcol'){S.days[+dayEl.dataset.day].dcol=el.value;save();schedule();return}
   if(dayEl&&el.dataset.spf&&el.type==='text'){S.days[+dayEl.dataset.day].sp.badge=el.value;save();schedule();return}
   if(dayEl&&el.dataset.dcb){const i=+dayEl.dataset.day;S.days[i].dc=el.value;save();schedule();return}
   if(dayEl&&el.dataset.dc){const i=+dayEl.dataset.day;S.days[i].c[el.dataset.dc]=el.value;S.style.palette='custom';const cr=dayEl.querySelector('[data-cr]');if(cr)cr.innerHTML=crBadge(S.days[i].c);save();schedule();return}
@@ -2489,9 +2490,10 @@ body.addEventListener('click',async e=>{
     case'sortmv':{const it=a.closest('.sorti'),list=it.parentElement,d=+a.dataset.d;if(d<0&&it.previousElementSibling)list.insertBefore(it,it.previousElementSibling);else if(d>0&&it.nextElementSibling)list.insertBefore(it.nextElementSibling,it);commitSort(list);break}
     case'setdeco':S.style.deco=a.dataset.v;changed(true);break;
     case'decoauto':S.style.decoColor='';changed(true);break;
-    case'shpdays':S.days.forEach(d=>{d.shape='';d.deco=''});changed(true);toast('日ごとの形・飾りをまとめて設定に戻しました');break;
-    case'shpall':S.days.forEach(d=>{d.shape='';d.deco='';if(d.sp){d.sp.shape='';d.sp.deco=''}});Object.assign(S.style,{shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100,so:Object.assign({},SO_DEF)});changed(true);toast('形と飾りを初期化しました（戻るボタンで元に戻せます）');break;
-    case'designreset':{applyPalette(S.style.basePal&&PALETTES[S.style.basePal]?S.style.basePal:'sunday');resetWeekdayColors();S.fonts={};S.days.forEach(d=>{d.shape='';d.deco=''});
+    case'dcolauto':{const de=a.closest('[data-day]');if(de){S.days[+de.dataset.day].dcol='';changed(true)}break}
+    case'shpdays':S.days.forEach(d=>{d.shape='';d.deco='';d.dcol=''});changed(true);toast('日ごとの形・飾りをまとめて設定に戻しました');break;
+    case'shpall':S.days.forEach(d=>{d.shape='';d.deco='';d.dcol='';if(d.sp){d.sp.shape='';d.sp.deco=''}});Object.assign(S.style,{shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100,so:Object.assign({},SO_DEF)});changed(true);toast('形と飾りを初期化しました（戻るボタンで元に戻せます）');break;
+    case'designreset':{applyPalette(S.style.basePal&&PALETTES[S.style.basePal]?S.style.basePal:'sunday');resetWeekdayColors();S.fonts={};S.days.forEach(d=>{d.shape='';d.deco='';d.dcol=''});
       Object.assign(S.style,{shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100,radius:36,border:3,shadow:true,band:true,outline:false,plate:false,font:'mplus',num:'outfit',stitch:false,neon:false,off:{},so:Object.assign({},SO_DEF),prio:PRIO_DEF.slice(),zorder:Z_DEF.slice()});changed(true);toast('デザインを初期化しました（予定と画像は残っています）');break}
     case'bulkfont':{const id=$('#bulkFont').value;if(FONTS[id]){S.style.font=id;S.style.num='same'}else{S.style.num=id}S.fonts={};changed(true);toast('すべての文字のフォントを変更しました');break}
     case'fontsreset':S.fonts={};changed(true);break;
