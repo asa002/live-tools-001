@@ -538,7 +538,7 @@ function defaultState(){
     head:{jaScale:35,enScale:100,order:'ja-en',titleScale:100,subScale:100,rangeScale:100,footScale:100,bodyScale:100,align:'left',rangePos:'right',showEyebrow:true,showRange:true,showLegend:true,showNote:true},
     post:{hashtags:'#配信予定',tags:[{t:'#配信予定',on:true},{t:'#VTuber',on:true}],urls:[{pf:'YouTube',url:'',on:true}],tpl:'week',custom:'',withSecond:true,withEnd:true,withTitle:true,withOff:true,day:-1},
     img:{bg:false,frameAll:false,avatar:false,frame:[false,false,false,false,false,false,false]},
-    avatar:{on:true,front:true,x:78,y:55,scale:90,flip:false,shadow:false,opacity:100,key:'off',keyColor:'#00ff00',tol:50,feather:30,connected:true,crop:{l:0,t:0,r:0,b:0},trim:true,autofit:true,rot:0,adj:{bri:0,con:0,sat:100,hue:0,warm:0}},
+    avatar:{on:true,front:true,x:78,y:55,scale:90,flip:false,shadow:false,opacity:100,key:'off',keyColor:'#00ff00',tol:50,feather:30,connected:true,crop:{l:0,t:0,r:0,b:0},trim:true,autofit:true,srcId:'',rot:0,adj:{bri:0,con:0,sat:100,hue:0,warm:0}},
   };
 }
 function merge(def,src){
@@ -578,7 +578,7 @@ function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setIt
 const HIST={u:[],r:[],last:null,t:0,mute:false};
 function snapStr(){const o=JSON.parse(JSON.stringify(S));delete o.img;return JSON.stringify(o)}
 function histCommit(){clearTimeout(HIST.t);if(HIST.last===null){HIST.last=snapStr();return}const cur=snapStr();if(cur===HIST.last)return;HIST.u.push(HIST.last);if(HIST.u.length>100)HIST.u.shift();HIST.r=[];HIST.last=cur;updHist()}
-function histApply(str){const img=S.img;S=normalize(JSON.parse(str));S.img=img;HIST.last=str;try{localStorage.setItem(APP_KEY,JSON.stringify(S))}catch(e){}postDirty=false;AVC.key='';renderTab();schedule();updHist()}
+function histApply(str){const img=S.img,av=S.avatar;S=normalize(JSON.parse(str));S.img=img;if(img.avatar&&(S.avatar.srcId||'')!==(av.srcId||''))S.avatar=av;HIST.last=str;try{localStorage.setItem(APP_KEY,JSON.stringify(S))}catch(e){}postDirty=false;AVC.key='';renderTab();schedule();updHist()}
 function undo(){histCommit();if(!HIST.u.length){toast('これ以上戻れません');return}HIST.r.push(HIST.last);histApply(HIST.u.pop());toast('1つ前に戻しました')}
 function redo(){histCommit();if(!HIST.r.length){toast('やり直す操作がありません');return}HIST.u.push(HIST.last);histApply(HIST.r.pop());toast('やり直しました')}
 function updHist(){const u=document.getElementById('btnUndo'),r=document.getElementById('btnRedo');if(u)u.disabled=!HIST.u.length;if(r)r.disabled=!HIST.r.length}
@@ -611,8 +611,8 @@ function imgKeys(){const k=['bg','frameAll','avatar'];for(let i=0;i<7;i++)k.push
 function hasImg(k){return k==='bg'?S.img.bg:k==='frameAll'?S.img.frameAll:k==='avatar'?S.img.avatar:S.img.frame[+k.slice(5)]}
 function setHas(k,v){if(k==='bg')S.img.bg=v;else if(k==='frameAll')S.img.frameAll=v;else if(k==='avatar')S.img.avatar=v;else S.img.frame[+k.slice(5)]=v}
 async function loadImages(){for(const k of imgKeys()){if(!hasImg(k))continue;const b=await DB.get(k);if(b){try{IMG[k]=await blobToImg(b)}catch(e){}}else setHas(k,false)}}
-async function setImage(k,file){const{blob,im}=await shrink(file,k==='bg'?4096:2400);IMG[k]=im;IMGV++;if(k==='bg'){Object.assign(S.style,{bgSrc:'image',bgScale:100,bgX:50,bgY:50});delete IMGINFO.bg}setHas(k,true);if(k==='avatar')onAvatarLoaded(im);await DB.put(k,blob);save();}
-async function removeImage(k){delete IMG[k];IMGV++;setHas(k,false);await DB.del(k);save()}
+async function setImage(k,file){const{blob,im}=await shrink(file,k==='bg'?4096:2400);IMG[k]=im;IMGV++;if(k==='bg'){Object.assign(S.style,{bgSrc:'image',bgScale:100,bgX:50,bgY:50});delete IMGINFO.bg}setHas(k,true);if(k==='avatar'){S.avatar.srcId=uid();dropAvDone();onAvatarLoaded(im)}await DB.put(k,blob);save();if(k==='avatar')commitAvatar()}
+async function removeImage(k){if(k==='avatar')dropAvDone();delete IMG[k];IMGV++;setHas(k,false);await DB.del(k);save()}
 
 /* =========================================================
    model (what to draw)
@@ -871,6 +871,17 @@ function drawBg(ctx,W,H){
 }
 /* ---------- avatar ---------- */
 let AVC={key:'',c:null,src:null};
+function avStableKey(){const A=S.avatar;return JSON.stringify([A.srcId||'',A.key,A.keyColor,A.tol,A.feather,A.connected,A.crop,A.trim,A.adj])}
+/* committed (baked) avatar: processed result saved as PNG so it never has to be recomputed / never resets */
+function dropAvDone(){if(IMG.avatarDone){try{URL.revokeObjectURL(IMG.avatarDone.src)}catch(e){}}delete IMG.avatarDone;DB.del('avatarDone');DB.del('avatarDoneKey')}
+let AVCOMMIT=Promise.resolve();
+function commitAvatar(){AVCOMMIT=AVCOMMIT.then(async()=>{
+  if(!S.img.avatar||!IMG.avatar)return;const sk=avStableKey();if(IMG.avatarDone&&IMG.avatarDone._k===sk)return;
+  const c=avatarCanvas();if(!c||!c.toBlob)return;const b=await new Promise(r=>c.toBlob(r,'image/png'));if(!b||avStableKey()!==sk)return;
+  const im=await blobToImg(b);im._k=sk;if(IMG.avatarDone){try{URL.revokeObjectURL(IMG.avatarDone.src)}catch(e){}}IMG.avatarDone=im;
+  if(AVC.c===c)AVC={key:'',c:null};await DB.put('avatarDone',b);await DB.put('avatarDoneKey',sk)}).catch(()=>{});return AVCOMMIT}
+async function loadAvDone(){if(!S.img.avatar)return;const k=await DB.get('avatarDoneKey'),b=await DB.get('avatarDone');if(!k||!b||k!==avStableKey())return;try{const im=await blobToImg(b);im._k=k;IMG.avatarDone=im}catch(e){}}
+function flushSave(){clearTimeout(saveT);try{localStorage.setItem(APP_KEY,JSON.stringify(S))}catch(e){}if(!HIST.mute)histCommit()}
 function avKey(){const A=S.avatar;return JSON.stringify([A.key,A.keyColor,A.tol,A.feather,A.connected,A.crop,A.trim,A.adj,IMGV])}
 function avSource(){
   const im=IMG.avatar;if(!im)return null;const A=S.avatar;
@@ -886,6 +897,7 @@ function cornerColor(d,w,h){let r=0,g=0,b=0,n=0;const p=Math.max(2,Math.round(Ma
   return[r/n,g/n,b/n];}
 function avatarCanvas(){
   if(!IMG.avatar||!S.img.avatar)return null;
+  if(IMG.avatarDone&&IMG.avatarDone._k===avStableKey())return IMG.avatarDone;
   const key=avKey();if(AVC.key===key)return AVC.c;
   const A=S.avatar;let c=avSource();
   if(c&&A.key!=='off'){
@@ -2322,7 +2334,7 @@ async function applyTransfer(code){
   S=normalize(head.state);let o=4+hl;
   for(const k of imgKeys()){delete IMG[k];await DB.del(k)}
   for(const mt of head.imgs){const b=new Blob([buf.subarray(o,o+mt.len)],{type:mt.type});o+=mt.len;await DB.put(mt.k,b);try{IMG[mt.k]=await blobToImg(b)}catch(e){}}
-  for(const k of imgKeys())setHas(k,!!IMG[k]);IMGV++;delete IMGINFO.bg;AVC.key='';
+  for(const k of imgKeys())setHas(k,!!IMG[k]);dropAvDone();IMGV++;delete IMGINFO.bg;AVC.key='';
   postDirty=false;save();renderTab();schedule();toast('画像込みのデータを読み込みました');
 }
 
@@ -2369,7 +2381,7 @@ body.addEventListener('pointermove',e=>{if(!SRT||e.pointerId!==SRT.id)return;e.p
 function endSort(e){if(!SRT||(e&&e.pointerId!==SRT.id))return;const{it,list,moved}=SRT;it.style.transform='';it.classList.remove('drag');list.classList.remove('dragging');SRT=null;if(moved)commitSort(list)}
 body.addEventListener('pointerup',endSort);body.addEventListener('pointercancel',endSort);
 const tabsEl=document.querySelector('.tabs'),panelEl=document.querySelector('.panel');
-tabsEl.addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;TAB=b.dataset.tab;try{localStorage.setItem(APP_KEY+'-tab',TAB)}catch(err){}renderTab();
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;const prev=TAB;if(document.activeElement&&body.contains(document.activeElement))document.activeElement.blur();if(prev==='avatar'&&b.dataset.tab!=='avatar'){flushSave();commitAvatar().then(()=>{schedule();if(TAB==='avatar')drawAvThumbs()})}TAB=b.dataset.tab;try{localStorage.setItem(APP_KEY+'-tab',TAB)}catch(err){}renderTab();
   if(tabsEl.classList.contains('in-stage')){const st=document.getElementById('stage');const target=panelEl.getBoundingClientRect().top+scrollY-st.getBoundingClientRect().bottom+4;if(scrollY>target)scrollTo({top:Math.max(0,target)})}
   b.scrollIntoView?.({block:'nearest',inline:'center'})});
 const mqMobile=matchMedia('(max-width:900px)');
@@ -2595,7 +2607,7 @@ async function saveSlot(i){
   setCurSlot(i);toast(`スロット${i+1}に保存しました`);openSlots();
 }
 async function copySlotImages(i,st){for(const k of imgKeys()){delete IMG[k];await DB.del(k);const b=await DB.get(`slot${i}:${k}`);const want=st.img&&(k==='bg'?st.img.bg:k==='frameAll'?st.img.frameAll:k==='avatar'?st.img.avatar:st.img.frame[+k.slice(5)]);
-  if(b&&want){await DB.put(k,b);try{IMG[k]=await blobToImg(b)}catch(e){}}}IMGV++;delete IMGINFO.bg;AVC.key=''}
+  if(b&&want){await DB.put(k,b);try{IMG[k]=await blobToImg(b)}catch(e){}}}dropAvDone();IMGV++;delete IMGINFO.bg;AVC.key=''}
 async function loadSlot(i){
   const sl=getSlots()[i];if(!sl)return;
   const st=normalize(clone(sl.state));await copySlotImages(i,st);S=st;for(const k of imgKeys())if(!IMG[k])setHas(k,false);
@@ -2771,7 +2783,8 @@ cv.addEventListener('wheel',e=>{const t=dragTarget();if(!t||t==='avarea')return;
    ========================================================= */
 (async function boot(){
   renderTab();schedule();HIST.last=snapStr();
-  await loadImages();schedule();if(TAB==='design'||TAB==='avatar'||TAB==='bg')renderTab();
+  await loadImages();if(S.img.avatar&&!S.avatar.srcId){S.avatar.srcId='legacy';save()}await loadAvDone();schedule();if(TAB==='design'||TAB==='avatar'||TAB==='bg')renderTab();if(S.img.avatar&&!IMG.avatarDone&&TAB!=='avatar')commitAvatar();
+  addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){flushSave();if(TAB==='avatar')commitAvatar()}});
   await checkImport();
   if('serviceWorker'in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js')}catch(e){}}
 })();
