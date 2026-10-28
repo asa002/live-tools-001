@@ -153,6 +153,19 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pf{border-radius:10px;padding:10px 12px;font-size:13px}.pf ul{margin:6px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
 .pf.warn{border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,transparent)}.pf.ok{border:1px solid var(--ok);color:var(--ok)}
 .dialog .hint{white-space:pre-line}
+.qrsend{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:640px){.qrsend{grid-template-columns:1fr}}
+#qrCv{width:100%;height:auto;border-radius:10px;background:#fff;image-rendering:pixelated}
+.qrinfo{display:flex;flex-direction:column;gap:10px}.qrinfo .field{flex:none}.qrinfo b{font:800 22px var(--f-num)}
+.scanbox{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3}
+.scanbox video{width:100%;height:100%;object-fit:cover;display:block}
+.scanframe{position:absolute;inset:12%;border:3px solid rgba(255,255,255,.85);border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.25)}
+.scanbar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}#scanBar{height:100%;width:0;background:var(--accent);transition:width .2s}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
+.ico-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;font-size:11.5px;font-weight:700;color:var(--fg)}
+.ico-btn img{width:56px;height:38px}.ico-btn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.shrow{display:grid;grid-template-columns:6.2em minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center}
+.shrow b{font:700 13px var(--f-num)}
 .avprev{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .avprev figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
 .avprev figcaption{font-size:11.5px;color:var(--muted)}
@@ -194,7 +207,9 @@ input[type=time]::-webkit-datetime-edit{padding:0}
 .weekpick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .day{border:1px solid var(--line);border-radius:11px;background:var(--bg);padding:10px;display:flex;flex-direction:column;gap:8px}
 .day.off{opacity:.92}
-.day-h{display:flex;align-items:center;gap:8px}
+.day-h{display:flex;align-items:center;gap:8px;position:sticky;top:var(--stick,0px);z-index:4;background:var(--bg);margin:-10px -10px 0;padding:10px 10px 6px;border-radius:11px 11px 0 0}
+.day input,.day select,.day textarea{scroll-margin-top:calc(var(--stick,0px) + 64px);scroll-margin-bottom:24px}
+.grp input,.grp select{scroll-margin-top:calc(var(--stick,0px) + 16px)}
 .dchip{display:inline-flex;align-items:baseline;gap:6px;font:800 16px/1 var(--f-num);padding:6px 9px;border-radius:7px;background:var(--dc,#888);color:var(--dci,#fff)}
 .dchip small{font:700 11px/1 var(--f-ui)}
 .day-h .wd{font-weight:700;color:var(--muted);font-size:12.5px}
@@ -260,10 +275,11 @@ input[type=time]::-webkit-datetime-edit{padding:0}
 
 /* tags / presets */
 .list{display:flex;flex-direction:column;gap:6px}
-.trow{display:grid;grid-template-columns:auto minmax(0,1fr) auto 34px;gap:6px;align-items:center}
-.prow{display:grid;grid-template-columns:92px 92px 92px minmax(0,1fr) 34px;gap:6px;align-items:center}
-.prow .pt{grid-column:1/4}.prow .pall{grid-column:4/6}
-@media (max-width:480px){ .prow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px} .prow .psel{grid-column:1/3} .prow .pt{grid-column:1/-1} .prow .pall{grid-column:1/-1} }
+.trow{display:grid;grid-template-columns:40px minmax(0,1fr) 92px 34px;gap:6px;align-items:center}
+.trow .pill{justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr) 34px;grid-template-areas:"t s e x" "g g ti ti" "all all all all";gap:6px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.prow .pt1{grid-area:t}.prow .tsep{grid-area:s;text-align:center;color:var(--muted)}.prow .pt2{grid-area:e}.prow .x{grid-area:x}.prow .psel{grid-area:g}.prow .pt{grid-area:ti}.prow .pall{grid-area:all}
+@media (max-width:420px){.prow{grid-template-areas:"t s e x" "g g g g" "ti ti ti ti" "all all all all"}}
 .pill{display:inline-flex;align-items:center;font:800 12px/1 var(--f-num);padding:6px 9px;border-radius:999px;white-space:nowrap}
 
 /* share tab */
@@ -415,7 +431,8 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const uid=()=>Math.random().toString(36).slice(2,8);
 const clone=o=>JSON.parse(JSON.stringify(o));
 function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
-function sundayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-x.getDay());return ymd(x)}
+function sundayOf(d,dow){if(dow===undefined)dow=(typeof S!=='undefined'&&S&&S.weekDow)||0;const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()-dow+7)%7));return ymd(x)}
+function dowOf(i){return dayDate(i).dow}
 function hexRgb(h){h=String(h||'#000').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h.slice(0,6),16)||0;return[(n>>16)&255,(n>>8)&255,n&255]}
 function rgba(h,a){const[r,g,b]=hexRgb(h);return `rgba(${r},${g},${b},${a})`}
 function lum(h){return hexRgb(h).map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)}).reduce((s,v,i)=>s+v*[0.2126,0.7152,0.0722][i],0)}
@@ -454,6 +471,19 @@ function zoneName(z){for(const[,list]of ZONES)for(const[id,n]of list)if(id===z)r
    state
    ========================================================= */
 function storeWeekView(){}
+async function setWeekDow(nd){
+  const od=S.weekDow||0;if(nd===od)return;storeWeek();const delta=(nd-od+7)%7;const rot=a=>a.map((_,i)=>a[(i+delta)%7]);
+  const design=S.days.map(d=>({c:d.c,dc:d.dc,shape:d.shape,deco:d.deco}));const nd2=rot(design);S.days.forEach((d,i)=>Object.assign(d,nd2[i]));
+  // frame images follow their weekday
+  const blobs=[];for(let i=0;i<7;i++)blobs.push(S.img.frame[i]?await DB.get('frame'+i):null);const imgs=[0,1,2,3,4,5,6].map(i=>IMG['frame'+i]);
+  const rb=rot(blobs),ri=rot(imgs);for(let i=0;i<7;i++){await DB.del('frame'+i);if(rb[i]){await DB.put('frame'+i,rb[i]);IMG['frame'+i]=ri[i];S.img.frame[i]=true}else{delete IMG['frame'+i];S.img.frame[i]=false}}
+  // re-bucket the week archive by date
+  const byDate={};for(const[ws,w]of Object.entries(S.weeks))w.days.forEach((x,i)=>{if(!weekEmpty([x]))byDate[addDaysStr(ws,i)]=x});
+  const cur=S.weekStart;S.weekDow=nd;const nw={};
+  for(const[dt,x]of Object.entries(byDate)){const[y,m,d]=dt.split('-').map(Number);const ws=sundayOf(new Date(y,m-1,d),nd);const idx=Math.round((Date.UTC(y,m-1,d)-Date.UTC(...ws.split('-').map((v,j)=>j===1?v-1:+v)))/864e5);
+    if(!nw[ws])nw[ws]={days:Array.from({length:7},()=>({off:false,offNote:'',offNoteEn:'',slots:[],sp:{on:false,badge:'',font:'',glow:true}})),saved:Date.now()};nw[ws].days[idx]=x}
+  S.weeks=nw;const[y,m,d]=cur.split('-').map(Number);S.weekStart='';loadWeek(sundayOf(new Date(y,m-1,d),nd));IMGV++;postDirty=false;changed(true);toast(`${WD_JA[nd]}曜はじまりにしました`);
+}
 function packWeek(){return S.days.map(d=>({off:!!d.off,offNote:d.offNote||'',offNoteEn:d.offNoteEn||'',slots:clone(d.slots),sp:clone(d.sp||{on:false,badge:'',font:'',glow:true})}))}
 function weekEmpty(w){return w.every(d=>!d.off&&!d.slots.length&&!d.offNote&&!d.offNoteEn&&!(d.sp&&d.sp.on))}
 function storeWeek(){const w=packWeek();if(weekEmpty(w))delete S.weeks[S.weekStart];else S.weeks[S.weekStart]={days:w,saved:Date.now()}}
@@ -475,7 +505,7 @@ function defaultState(){
   const sl=(tag,t,e,title,titleEn)=>({tag,t,e,title,titleEn});
   const days=Array.from({length:7},(_,i)=>({off:false,offNote:'',offNoteEn:'',slots:[],c:clone(P.days[i])}));
   return{
-    v:1,weekStart:sundayOf(new Date()),lang:'both',
+    v:1,weekDow:0,weekStart:sundayOf(new Date(),0),lang:'both',
     title:{ja:'今週の配信予定',en:'WEEKLY SCHEDULE'},channel:'',
     note:{ja:'※予定は変更になる場合があります',en:'*Schedule is subject to change.'},
     tz:{a:{zone:'Asia/Tokyo',label:'',dst:'auto'},b:{on:true,zone:'UTC',label:'',dst:'auto'},paren:true},
@@ -484,7 +514,7 @@ function defaultState(){
     presets:[{id:'p1',t:'',e:'',tag:'t1',title:'',titleEn:''},{id:'p2',t:'',e:'',tag:'t2',title:'',titleEn:''},{id:'p3',t:'',e:'',tag:'tev',title:'',titleEn:''},{id:'p4',t:'',e:'',tag:'tco',title:'',titleEn:''}],presetV:2,
     days,
     style:{palette:'sunday',font:'mplus',num:'outfit',radius:36,border:3,alpha:P.alpha,outline:false,shadow:true,band:true,plate:false,
-      ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],bgType:'grad',bgDots:true,bgSrc:'color',bgFill:'edge',dim:0,dimColor:'#000000',bgScale:100,bgX:50,bgY:50,frameUnder:false,frameFit:'stretch',holOn:true,sunColor:'',satColor:'',holColor:'',wkColor:'',bandFix:true},
+      ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],bgType:'grad',bgDots:true,bgPattern:'dots',bgSrc:'color',bgFill:'edge',dim:0,dimColor:'#000000',bgScale:100,bgX:50,bgY:50,frameUnder:false,frameFit:'stretch',shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100,holOn:true,sunColor:'',satColor:'',holColor:'',wkColor:'',bandFix:true},
     layout:{mode:'land-right',landFull:'grid',avatar:38,guide:true,width:'fit',rowH:'auto',scale:1,cols:1,order2:'split'},
     weeks:{},
     fonts:{},
@@ -503,7 +533,7 @@ function src_has(s,k){return!!(s&&s._raw&&s._raw[k]!==undefined)}
 function normalize(s){
   const raw=s&&s.style?s.style:{};const d=defaultState();s=merge(d,s);s._raw=raw;
   if(!Array.isArray(s.days)||s.days.length!==7)s.days=d.days;
-  s.days=s.days.map((x,i)=>({sp:x.sp,dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
+  s.days=s.days.map((x,i)=>({shape:x.shape||'',deco:x.deco||'',sp:x.sp,dc:x.dc||'',off:!!x.off,offNote:x.offNote||'',offNoteEn:x.offNoteEn||'',slots:Array.isArray(x.slots)?x.slots.slice(0,3).map(z=>({tag:z.tag||'',t:z.t||'',e:z.e||'',title:z.title||'',titleEn:z.titleEn||''})):[],c:merge(d.days[i].c,x.c)}));
   if(!s.tags.length)s.tags=d.tags;
   if(!s.weeks||typeof s.weeks!=='object'||Array.isArray(s.weeks))s.weeks={};
   if(s.layout.order2==='staggerRev'||s.layout.order2==='zigzag')s.layout.order2='stagger';
@@ -780,10 +810,23 @@ function analyzeImg(im){
 function bgInfo(){const im=IMG.bg;if(!im)return null;if(!IMGINFO.bg||IMGINFO.bg.src!==im.src){const a=analyzeImg(im);if(a)a.src=im.src;IMGINFO.bg=a}return IMGINFO.bg}
 function bgRect(W,H){const im=IMG.bg;const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;const sc=Math.max(W/iw,H/ih)*S.style.bgScale/100;const w=iw*sc,h=ih*sc;return{x:W*S.style.bgX/100-w/2,y:H*S.style.bgY/100-h/2,w,h,iw,ih}}
 function colorFill(ctx,W,H,c1,c2,type,dots){
-  if(type==='solid'){ctx.fillStyle=c1}
+  if(type==='solid'||type==='diag'){ctx.fillStyle=c1}
   else{const g=type==='vgrad'?ctx.createLinearGradient(0,0,0,H):type==='hgrad'?ctx.createLinearGradient(0,0,W,0):ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g}
   ctx.fillRect(0,0,W,H);
-  if(dots){ctx.fillStyle=rgba(autoInk(c1),0.07);const step=Math.min(W,H)/27;for(let y=step/2;y<H;y+=step)for(let x=step/2;x<W;x+=step){ctx.beginPath();ctx.arc(x,y,step*0.06,0,7);ctx.fill()}}
+  if(type==='diag'){ctx.fillStyle=c2;ctx.beginPath();ctx.moveTo(W*0.62,0);ctx.lineTo(W,0);ctx.lineTo(W,H);ctx.lineTo(W*0.38,H);ctx.closePath();ctx.fill()}
+  const pat=dots===true?'dots':dots||'none';if(pat!=='none')bgPattern(ctx,W,H,pat,c1,c2);
+}
+function bgPattern(ctx,W,H,pat,c1,c2){
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;const m=Math.min(W,H),ink=autoInk(mixHex(c1,c2,0.5));ctx.save();
+  if(pat==='dots'){ctx.fillStyle=rgba(autoInk(c1),0.07);const step=m/27;for(let y=step/2;y<H;y+=step)for(let x=step/2;x<W;x+=step){ctx.beginPath();ctx.arc(x,y,step*0.06,0,7);ctx.fill()}}
+  else if(pat==='grid'){ctx.strokeStyle=rgba(autoInk(c1),0.07);ctx.lineWidth=Math.max(1,m/900);const step=m/18;ctx.beginPath();for(let x=step;x<W;x+=step){ctx.moveTo(x,0);ctx.lineTo(x,H)}for(let y=step;y<H;y+=step){ctx.moveTo(0,y);ctx.lineTo(W,y)}ctx.stroke()}
+  else if(pat==='lines'){ctx.strokeStyle=rgba(autoInk(c1),0.09);ctx.lineWidth=Math.max(1,m/700);const step=m/16;ctx.beginPath();for(let y=step;y<H;y+=step){ctx.moveTo(0,y);ctx.lineTo(W,y)}ctx.stroke();ctx.strokeStyle='rgba(230,80,90,.28)';ctx.beginPath();ctx.moveTo(m*0.06,0);ctx.lineTo(m*0.06,H);ctx.stroke()}
+  else if(pat==='stars'){for(let n=0;n<140;n++){const x=rnd()*W,y=rnd()*H,r=m*(0.001+rnd()*0.0035);ctx.fillStyle=rgba('#ffffff',0.25+rnd()*0.6);ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
+    for(let n=0;n<14;n++){const x=rnd()*W,y=rnd()*H,s=m*(0.015+rnd()*0.02);ctx.fillStyle=rgba('#ffffff',0.55);ctx.beginPath();for(let k=0;k<8;k++){const a=-Math.PI/2+k*Math.PI/4,rr2=(k%2?0.18:1)*s;ctx.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2)}ctx.closePath();ctx.fill()}}
+  else if(pat==='clouds'){ctx.fillStyle='rgba(255,255,255,.55)';for(let n=0;n<9;n++){const x=rnd()*W,y=rnd()*H,s=m*(0.05+rnd()*0.06);ctx.beginPath();ctx.arc(x,y,s,0,7);ctx.arc(x+s*0.9,y+s*0.15,s*0.8,0,7);ctx.arc(x-s*0.9,y+s*0.2,s*0.7,0,7);ctx.arc(x+s*0.2,y+s*0.45,s*0.85,0,7);ctx.fill()}
+    ctx.fillStyle='rgba(255,255,255,.7)';for(let n=0;n<18;n++){const x=rnd()*W,y=rnd()*H,s=m*0.008;ctx.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,rr2=(k%2?0.45:1)*s*1.6;ctx.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2)}ctx.closePath();ctx.fill()}}
+  else if(pat==='petals'){for(let n=0;n<34;n++){const x=rnd()*W,y=rnd()*H,s=m*(0.008+rnd()*0.012);ctx.save();ctx.translate(x,y);ctx.rotate(rnd()*6.3);ctx.fillStyle=rgba('#f59ab8',0.35+rnd()*0.3);ctx.beginPath();ctx.ellipse(0,0,s*1.5,s,0,0,7);ctx.fill();ctx.restore()}}
+  ctx.restore();
 }
 function drawBg(ctx,W,H){
   const st=S.style,im=IMG.bg,useImg=st.bgSrc==='image'&&im&&S.img.bg;
@@ -796,7 +839,7 @@ function drawBg(ctx,W,H){
       else colorFill(ctx,W,H,st.bg1,st.bg2,st.bgType,false);
     }
     ctx.drawImage(im,r.x,r.y,r.w,r.h);
-  }else colorFill(ctx,W,H,st.bg1,st.bg2,st.bgType,st.bgDots);
+  }else colorFill(ctx,W,H,st.bg1,st.bg2,st.bgType,st.bgPattern||(st.bgDots?'dots':'none'));
   if(st.dim>0){ctx.fillStyle=rgba(st.dimColor,st.dim/100);ctx.fillRect(0,0,W,H)}
 }
 /* ---------- avatar ---------- */
@@ -886,8 +929,54 @@ function onAvatarLoaded(im){
     const tr=[0,15,240,255].some(i=>d[i*4+3]<20);A.key=tr?'off':'auto'}catch(e){}
   IMGV++;fitAvatar();
 }
-function spGlow(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),sp=S.days[i].sp;if(!sp.glow)return;ctx.save();ctx.shadowColor=rgba(bc,1);ctx.shadowBlur=u*1.8;ctx.lineWidth=u*0.22;ctx.stroke&&0;for(let n=0;n<2;n++){rr(ctx,x,y,w,h,r);ctx.strokeStyle=rgba(bc,0.95);ctx.stroke()}ctx.lineWidth=u*0.22;ctx.strokeStyle=rgba(bc,0.9);rr(ctx,x,y,w,h,r);ctx.stroke();ctx.restore()}
-function spAfter(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),bw=Math.max(u*0.1,S.style.border*u/40*2);ctx.save();ctx.lineWidth=bw;ctx.strokeStyle=bc;rr(ctx,x+bw/2,y+bw/2,w-bw,h-bw,Math.max(0,r-bw/2));ctx.stroke();ctx.restore()}
+let CARD_EAR=null;
+const SHAPES=[['rect','角丸'],['cat','ネコ耳'],['ribbon','リボン（帯）'],['ticket','チケット'],['bubble','吹き出し'],['tab','タブ'],['cut','カット']];
+const DECOS=[['none','なし'],['bow','リボン'],['star','星'],['sparkle','キラキラ'],['heart','ハート'],['crown','王冠'],['flower','花'],['moonsun','月と太陽']];
+function shapeOf(i){return(S.days[i]&&S.days[i].shape)||S.style.shape||'rect'}
+function decoOf(i){const d=S.days[i]&&S.days[i].deco;return d||S.style.deco||'none'}
+function shapeExt(sh,u,h){if(sh==='cat')return{t:Math.min(u*1.1,h*0.9)*0.98,b:0};if(sh==='tab')return{t:Math.min(u*0.42,h*0.35),b:0};if(sh==='bubble')return{t:0,b:u*0.45};return{t:0,b:0}}
+function cardPath(ctx,x,y,w,h,r,i,u,inset){
+  inset=inset||0;const sh=shapeOf(i);x+=inset;y+=inset;w-=2*inset;h-=2*inset;r=Math.max(0,Math.min(r-inset,w/2,h/2));
+  const E=CARD_EAR||{x0:x,x1:x+w};ctx.beginPath();
+  if(sh==='ribbon'){const n=Math.min(h*0.3,u*0.45,w*0.05);ctx.moveTo(x,y);ctx.lineTo(x+w,y);ctx.lineTo(x+w-n,y+h/2);ctx.lineTo(x+w,y+h);ctx.lineTo(x,y+h);ctx.lineTo(x+n,y+h/2);ctx.closePath();return}
+  if(sh==='cut'){const c=Math.max(u*0.3,r*0.9);ctx.moveTo(x+c,y);ctx.lineTo(x+w-c,y);ctx.lineTo(x+w,y+c);ctx.lineTo(x+w,y+h-c);ctx.lineTo(x+w-c,y+h);ctx.lineTo(x+c,y+h);ctx.lineTo(x,y+h-c);ctx.lineTo(x,y+c);ctx.closePath();return}
+  if(sh==='tab'){const th=Math.min(u*0.42,h*0.35)-inset,te=Math.min(E.x1,x+w-r-th);ctx.moveTo(x+r,y-th);ctx.lineTo(te-th*0.3,y-th);ctx.quadraticCurveTo(te+th*0.25,y-th,te+th*0.55,y-th*0.45);ctx.lineTo(te+th*0.9,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y-th,r);ctx.arcTo(x,y-th,x+r,y-th,r);ctx.closePath();return}
+  ctx.moveTo(x+r,y);
+  if(sh==='cat'){const span=E.x1-E.x0,ew=Math.min(span*0.34,u*1.1,h*0.9)-inset,eh=ew*0.98;for(const cx of[E.x0+span*0.27,E.x0+span*0.73]){ctx.lineTo(cx-ew/2,y);ctx.lineTo(cx-ew*0.14,y-eh*0.9);ctx.quadraticCurveTo(cx-ew*0.02,y-eh*1.06,cx+ew*0.12,y-eh*0.86);ctx.lineTo(cx+ew/2,y)}}
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  if(sh==='ticket'){const nr=Math.min(h*0.16,u*0.35);ctx.lineTo(x+w,y+h/2-nr);ctx.arc(x+w,y+h/2,nr,-Math.PI/2,Math.PI/2,true)}
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  if(sh==='bubble'){const tw=u*0.7,th=u*0.45-inset,tx=x+Math.max(r+u*0.2,Math.min(w*0.1,u*1.6));ctx.lineTo(tx+tw,y+h);ctx.lineTo(tx+tw*0.15,y+h+th);ctx.lineTo(tx,y+h)}
+  ctx.arcTo(x,y+h,x,y,r);
+  if(sh==='ticket'){const nr=Math.min(h*0.16,u*0.35);ctx.lineTo(x,y+h/2+nr);ctx.arc(x,y+h/2,nr,Math.PI/2,-Math.PI/2,true)}
+  ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function decoShape(ctx,type,s){
+  const P=Math.PI;ctx.beginPath();
+  if(type==='star'||type==='sparkle'){const pts=type==='star'?5:4,ri=type==='star'?0.42:0.2;for(let k=0;k<pts*2;k++){const a=-P/2+k*P/pts,rr2=(k%2?ri:1)*s/2;ctx.lineTo(Math.cos(a)*rr2,Math.sin(a)*rr2)}ctx.closePath();
+    if(type==='sparkle'){const o=s*0.48,m=s*0.42;for(let k=0;k<8;k++){const a=-P/2+k*P/4,rr2=(k%2?0.2:1)*s*0.2;ctx[k?'lineTo':'moveTo'](o+Math.cos(a)*rr2,-m+Math.sin(a)*rr2)}ctx.closePath()}return}
+  if(type==='heart'){const h=s*0.9;ctx.moveTo(0,h*0.38);ctx.bezierCurveTo(-h*0.62,-h*0.02,-h*0.42,-h*0.55,0,-h*0.26);ctx.bezierCurveTo(h*0.42,-h*0.55,h*0.62,-h*0.02,0,h*0.38);ctx.closePath();return}
+  if(type==='crown'){const w=s,h=s*0.62;ctx.moveTo(-w/2,h/2);ctx.lineTo(-w/2,-h*0.25);ctx.lineTo(-w*0.24,h*0.05);ctx.lineTo(0,-h/2);ctx.lineTo(w*0.24,h*0.05);ctx.lineTo(w/2,-h*0.25);ctx.lineTo(w/2,h/2);ctx.closePath();return}
+  if(type==='flower'){for(let k=0;k<5;k++){const a=-P/2+k*2*P/5;ctx.moveTo(Math.cos(a)*s*0.27+s*0.2,Math.sin(a)*s*0.27);ctx.arc(Math.cos(a)*s*0.27,Math.sin(a)*s*0.27,s*0.2,0,2*P)}return}
+  if(type==='bow'){const w=s,h=s*0.62;ctx.moveTo(0,0);ctx.bezierCurveTo(-w*0.2,-h*0.6,-w*0.58,-h*0.55,-w*0.5,0);ctx.bezierCurveTo(-w*0.58,h*0.55,-w*0.2,h*0.6,0,0);ctx.bezierCurveTo(w*0.2,-h*0.6,w*0.58,-h*0.55,w*0.5,0);ctx.bezierCurveTo(w*0.58,h*0.55,w*0.2,h*0.6,0,0);
+    ctx.moveTo(-w*0.05,h*0.08);ctx.lineTo(-w*0.24,h*0.78);ctx.lineTo(-w*0.12,h*0.68);ctx.lineTo(-w*0.04,h*0.82);ctx.lineTo(w*0.04,h*0.1);ctx.closePath();ctx.moveTo(w*0.05,h*0.08);ctx.lineTo(w*0.24,h*0.78);ctx.lineTo(w*0.12,h*0.68);ctx.lineTo(w*0.04,h*0.82);ctx.lineTo(-w*0.04,h*0.1);ctx.closePath();return}
+}
+function drawDecoAt(ctx,type,ax,ay,s,col,tilt){
+  if(!type||type==='none')return;ctx.save();ctx.translate(ax,ay);ctx.rotate(tilt||0);ctx.lineJoin='round';
+  const ol=autoInk(col)==='#ffffff'?'rgba(255,255,255,.95)':'rgba(20,18,28,.85)';
+  if(type==='moonsun'){ctx.beginPath();ctx.arc(-s*0.22,0,s*0.22,0,7);ctx.fillStyle='#f2b84b';ctx.fill();ctx.lineWidth=s*0.05;ctx.strokeStyle='rgba(20,18,28,.75)';ctx.stroke();
+    for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.beginPath();ctx.moveTo(-s*0.22+Math.cos(a)*s*0.29,Math.sin(a)*s*0.29);ctx.lineTo(-s*0.22+Math.cos(a)*s*0.4,Math.sin(a)*s*0.4);ctx.strokeStyle='#f2b84b';ctx.lineWidth=s*0.06;ctx.stroke()}
+    ctx.beginPath();ctx.arc(s*0.26,0,s*0.25,0,7);ctx.arc(s*0.36,-s*0.06,s*0.21,0,7,true);ctx.fillStyle='#2b2630';ctx.fill('evenodd');ctx.lineWidth=s*0.04;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.stroke();ctx.restore();return}
+  decoShape(ctx,type,s);ctx.fillStyle=col;ctx.lineWidth=Math.max(1,s*0.07);ctx.strokeStyle=ol;ctx.stroke();ctx.fill(type==='flower'?'nonzero':'nonzero');
+  if(type==='flower'){ctx.beginPath();ctx.arc(0,0,s*0.14,0,7);ctx.fillStyle='#ffd34d';ctx.fill()}
+  if(type==='bow'){ctx.beginPath();ctx.arc(0,s*0.02,s*0.1,0,7);ctx.fillStyle=mixHex(col,'#000000',0.25);ctx.fill()}
+  ctx.restore();
+}
+function decoColor(i){const st=S.style;if(st.decoColor)return st.decoColor;const c=S.days[i].c.b,bc=bandColor(i);return contrast(c,bc)>=1.6?c:mixHex(bc,autoInk(bc)==='#ffffff'?'#ffffff':'#000000',0.45)}
+function drawDeco(ctx,i,x,y,w,h,u){const t=decoOf(i);if(t==='none')return;const st=S.style,s=u*1.05*(st.decoSize||100)/100,pos=st.decoPos||'tr';
+  const ax=pos==='tl'?x+s*0.35:pos==='tc'?x+w/2:x+w-s*0.35,ay=y+s*0.05;drawDecoAt(ctx,t,ax,ay,s,decoColor(i),pos==='tl'?-0.25:pos==='tr'?0.25:0)}
+function spGlow(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),sp=S.days[i].sp;if(!sp.glow)return;ctx.save();ctx.shadowColor=rgba(bc,1);ctx.shadowBlur=u*1.8;ctx.lineWidth=u*0.22;for(let n=0;n<3;n++){cardPath(ctx,x,y,w,h,r,i,u);ctx.strokeStyle=rgba(bc,0.95);ctx.stroke()}ctx.restore()}
+function spAfter(ctx,x,y,w,h,r,i,u){const bc=bandColor(i),bw=Math.max(u*0.1,S.style.border*u/40*2);ctx.save();ctx.lineWidth=bw;ctx.strokeStyle=bc;cardPath(ctx,x,y,w,h,r,i,u,bw/2);ctx.stroke();ctx.restore()}
 function spBadge(ctx,x,y,w,i,u,k){const sp=S.days[i].sp;const txt=(sp.badge||'').trim()||'SPECIAL';const bc=bandColor(i);const f=FF('tag','b',0.4*u);
   const bw=mw(f,txt)+0.6*u,bh=0.66*u,bx=x+w-bw-0.5*u,by=y-bh*0.55;ctx.save();ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=u*0.25;rr(ctx,bx,by,bw,bh,bh/2);ctx.fillStyle=bc;ctx.fill();ctx.restore();
   T(ctx,txt,bx+bw/2,by+bh/2,f,autoInk(bc),'center','middle',null)}
@@ -904,11 +993,11 @@ function cardBase(ctx,x,y,w,h,r,i,u,band){
   if(base){
     ctx.save();
     if(st.shadow){ctx.shadowColor='rgba(10,8,20,.28)';ctx.shadowBlur=u*0.5;ctx.shadowOffsetY=u*0.12}
-    rr(ctx,x,y,w,h,r);ctx.fillStyle=rgba(c.f,st.alpha/100);ctx.fill();ctx.restore();
-    if(band&&st.band){ctx.save();rr(ctx,x,y,w,h,r);ctx.clip();ctx.fillStyle=bandColor(i);ctx.fillRect(band.x,band.y,band.w,band.h);ctx.restore()}
+    cardPath(ctx,x,y,w,h,r,i,u);ctx.fillStyle=rgba(c.f,st.alpha/100);ctx.fill();ctx.restore();
+    if(band&&st.band){const et=shapeExt(shapeOf(i),u,h).t;ctx.save();cardPath(ctx,x,y,w,h,r,i,u);ctx.clip();ctx.fillStyle=bandColor(i);ctx.fillRect(band.x,band.y-et,band.w,band.h+et);ctx.restore()}
   }
   if(fimg)drawFit(ctx,fimg,x,y,w,h,st.frameFit,r);
-  if(base&&st.border>0){const bw=st.border*u/40;ctx.lineWidth=bw;ctx.strokeStyle=c.b;rr(ctx,x+bw/2,y+bw/2,w-bw,h-bw,Math.max(0,r-bw/2));ctx.stroke()}
+  if(base&&st.border>0){const bw=st.border*u/40;ctx.lineWidth=bw;ctx.strokeStyle=c.b;ctx.lineJoin='round';cardPath(ctx,x,y,w,h,r,i,u,bw/2);ctx.stroke()}
   return{bandOn:base&&st.band};
 }
 function pill(ctx,x,cy,tag,k){
@@ -989,6 +1078,7 @@ function drawLine2(ctx,k,d,x,yb,ink,ol){
 function rowMetrics(M,u){
   const k={};commonFonts(u,k);
   k.pad=0.55*u;k.padY=0.34*u;k.gc=0.5*u;k.sg=0.22*u;k.rg=0.26*u;
+  k.extT=0;k.extB=0;for(let i=0;i<7;i++){const e=shapeExt(shapeOf(i),u,1.9*u);k.extT=Math.max(k.extT,e.t);k.extB=Math.max(k.extB,e.b)}k.rg+=k.extT+k.extB;
   dayFonts(k,u);
   timeCols(k,M,S.tz.b.on&&S.time.arrange==='stack');
   let dw=0,anySec=false;for(const d of M.days){const kd=dayK(k,d);dw=Math.max(dw,line1W(kd,d),d.sec?line2W(kd,d):0);if(d.sec)anySec=true}
@@ -1020,10 +1110,10 @@ function rowMetrics(M,u){
   k.eyH=M.eyebrow?0.42*u*es*1.5:0;k.eyA=0.42*u*es;
   k.tH=k.tl.reduce((a,t)=>a+t.h,0);
   k.rH=k.rBelow?0.62*u*rs*1.45:0;k.rA=0.62*u*rs*1.0;
-  k.headH=k.eyH+k.tH+k.rH;k.headGap=k.headH?0.5*u:0;
+  k.headH=k.eyH+k.tH+k.rH;k.headGap=(k.headH?0.5*u:0)+k.extT;
   const rW=mw(k.fRange,M.range);
   k.headW=Math.max(M.eyebrow?mw(k.fEy,M.eyebrow):0,...k.tl.map((t,j)=>mw(t.f,t.text)+(k.rRight&&j===k.tl.length-1?0.8*u+rW:0)),k.rBelow?rW:0);
-  k.footH=(M.legend||M.note)?0.34*u*fs*1.6:0;k.footGap=k.footH?0.4*u:0;
+  k.footH=(M.legend||M.note)?0.34*u*fs*1.6:0;k.footGap=(k.footH?0.4*u:0)+k.extB;
   const cols=S.layout.cols===2?2:1;k.cols=cols;k.colGap=0.6*u;
   const bodyH=colPlan(k).bodyH;
   k.bodyH=bodyH;
@@ -1078,6 +1168,7 @@ function drawList(ctx,M,R,W,H){
     const d=M.days[di];if(gi===0)y=top+plan.offs[col];
     const rx=x0+col*(rowW+k.colGap);
     const c=d.c,RH=k.rowHs[d.i],kd=dayK(k,d);
+    CARD_EAR={x0:rx,x1:rx+k.dayW};
     if(d.sp&&d.sp.on)spGlow(ctx,rx,y,rowW,RH,r,d.i,u);
     const cb=cardBase(ctx,rx,y,rowW,RH,r,d.i,u,{x:rx,y,w:k.dayW,h:RH});
     if(d.sp&&d.sp.on)spAfter(ctx,rx,y,rowW,RH,r,d.i,u);
@@ -1100,7 +1191,9 @@ function drawList(ctx,M,R,W,H){
     }
     if(bar)dayBar(ctx,d,xTag,iy0+ih-k.barH+0.2*u,rx+rowW-k.pad-xTag-0.5*u,u,c);
     OUTLINE=null;
+    drawDeco(ctx,d.i,rx,y,rowW,RH,u);
     if(d.sp&&d.sp.on)spBadge(ctx,rx,y,rowW,d.i,u,k);
+    CARD_EAR=null;
     y+=RH+k.rg;
   }
   if(k.footH){
@@ -1191,13 +1284,16 @@ function infoTile(ctx,M,x,y,w,h,u,draw){
 }
 function drawGrid(ctx,M,R,W,H){
   const gap=0.016*W,cols=4;
-  const cw=(R.w-gap*(cols-1))/cols,ch=(R.h-gap)/2;
+  const cw=(R.w-gap*(cols-1))/cols;let ch=(R.h-gap)/2;
   const short=Math.min(W,H),uMax=short*0.06,floor=short*0.03;
-  const u=bsearch(u=>tileMetrics(M,u,cw,ch).ok,6,uMax);
+  const ext=u=>{let t=0,b=0;for(let i=0;i<7;i++){const e=shapeExt(shapeOf(i),u,ch);t=Math.max(t,e.t);b=Math.max(b,e.b)}return{t,b}};
+  const u=bsearch(u=>{const e=ext(u);return tileMetrics(M,u,cw,ch-e.t-e.b).ok},6,uMax);
+  const E0=ext(u),ch0=ch;ch=ch-E0.t-E0.b;
   const{k}=tileMetrics(M,u,cw,ch);
   const st=S.style;
   M.days.forEach((d,idx)=>{
-    const x=R.x+(idx%cols)*(cw+gap),y=R.y+Math.floor(idx/cols)*(ch+gap),c=d.c;
+    const x=R.x+(idx%cols)*(cw+gap),y=R.y+Math.floor(idx/cols)*(ch0+gap)+E0.t,c=d.c;
+    CARD_EAR={x0:x+cw*0.1,x1:x+cw*0.9};
     const r=st.radius/100*Math.min(cw,ch,3*u)/2,kd=dayK(k,d);
     if(d.sp&&d.sp.on)spGlow(ctx,x,y,cw,ch,r,d.i,u);
     const cb=cardBase(ctx,x,y,cw,ch,r,d.i,u,{x,y,w:cw,h:k.bandH});
@@ -1225,9 +1321,10 @@ function drawGrid(ctx,M,R,W,H){
       iy+=L.h+k.ig;
     }
     OUTLINE=null;
-    if(d.sp&&d.sp.on)spBadge(ctx,x,y,cw,d.i,u,k);
+    drawDeco(ctx,d.i,x,y,cw,ch,u);
+    if(d.sp&&d.sp.on)spBadge(ctx,x,y,cw,d.i,u,k);CARD_EAR=null;
   });
-  const x=R.x+3*(cw+gap),y=R.y+ch+gap;
+  const x=R.x+3*(cw+gap),y=R.y+ch0+gap+E0.t;
   OUTLINE=null;infoTile(ctx,M,x,y,cw,ch,u,true);LAST.hits.push({type:'head',x,y,w:cw,h:ch});LAST.block={x:R.x,y:R.y,w:R.w,h:R.h};
   LAST.card={w:cw,hs:[Math.round(ch)],kind:'grid'};
   return{u,small:u<floor,trunc:false};
@@ -1297,6 +1394,7 @@ function renderTab(){
   body.innerHTML=({sched:tabSched,design:tabDesign,bg:tabBg,avatar:tabAvatar,layout:tabLayout,settings:tabSettings,share:tabShare}[TAB]||tabSched)();
   if(TAB==='share')afterShare();
   if(TAB==='avatar')drawAvThumbs();
+  if(TAB==='design')setTimeout(()=>fillDPreThumbs().catch(()=>{}),50);
   renderQuick();
   const on=!!dragTarget();stage.classList.toggle('dragbg',on);$('#dragHint').hidden=false;$('#dragHint').textContent=({avatar:'ドラッグで移動／四隅で拡大縮小／丸いハンドルで回転',avarea:'ピンクの境界線をドラッグで、アバター用の場所の広さを変更',bg:'プレビューをドラッグで背景を移動／ホイール・ピンチで拡大縮小'})[dragTarget()]||'プレビューをタップすると、その部分を編集できます';
 }
@@ -1328,7 +1426,7 @@ function tabSched(){
       <button class="btn sm" data-act="week" data-d="7" aria-label="次の週">▶</button>
       <button class="btn sm" data-act="thisweek">今週</button>
     </div>
-    <p class="hint">日曜はじまりの1週間です。<b>${esc(tzAbbr(S.tz.a,Date.now()))}</b>の時刻を入れると${S.tz.b.on?`<b>${esc(tzAbbr(S.tz.b,Date.now()))}</b>が自動で入ります（逆も可）。`:'表示されます。'}開始・終了とも空欄（--:--）でもOK。下のボタンでよく使う時間をワンタップ追加、各枠の「よく使う時間から入れる」で入れ替えもできます。</p>
+    <p class="hint">${WD_JA[S.weekDow||0]}曜はじまりの1週間です（［設定］で変更できます）。<b>${esc(tzAbbr(S.tz.a,Date.now()))}</b>の時刻を入れると${S.tz.b.on?`<b>${esc(tzAbbr(S.tz.b,Date.now()))}</b>が自動で入ります（逆も可）。`:'表示されます。'}開始・終了とも空欄（--:--）でもOK。下のボタンでよく使う時間をワンタップ追加、各枠の「よく使う時間から入れる」で入れ替えもできます。</p>
   </div><div class="list" id="days">`;
   for(let i=0;i<7;i++)h+=dayHtml(i);
   h+=`</div><div class="row"><button class="btn sm" data-act="copyprev">前の週の予定をコピー</button><button class="btn sm ghost danger" data-act="clearall">この週の予定をクリア</button></div>`;
@@ -1348,7 +1446,7 @@ function dayHtml(i){
   const day=S.days[i],c=day.c;const showEn=S.lang!=='ja';
   const la=tzAbbr(S.tz.a,Date.now()),lb=tzAbbr(S.tz.b,Date.now());
   let h=`<article class="day ${day.off?'off':''}" data-day="${i}">
-    <div class="day-h"><span class="dchip" style="--dc:${bandColor(i)};--dci:${autoInk(bandColor(i))}">${dayLabel(i)}<small>${WD_JA[i]}</small></span><span class="wd">${WD_EN[i]}${holidayOf(i)?` <span class="hol">${esc(holidayOf(i))}</span>`:''}</span>
+    <div class="day-h"><span class="dchip" style="--dc:${bandColor(i)};--dci:${autoInk(bandColor(i))}">${dayLabel(i)}<small>${WD_JA[dowOf(i)]}</small></span><span class="wd">${WD_EN[dowOf(i)]}${holidayOf(i)?` <span class="hol">${esc(holidayOf(i))}</span>`:''}</span>
     <label class="check"><input type="checkbox" data-df="off" ${day.off?'checked':''}> お休み</label></div>`;
   if(day.off){
     h+=`<div class="slot-ti ${showEn?'two':''}"><input type="text" data-df="offNote" value="${esc(day.offNote)}" placeholder="お休みのひとこと（例：お休み）" aria-label="お休みのひとこと">${showEn?`<input type="text" data-df="offNoteEn" value="${esc(day.offNoteEn)}" placeholder="English (Day off)" aria-label="英語">`:''}</div>`;
@@ -1373,13 +1471,60 @@ function dayHtml(i){
   }
   return h+'</article>';
 }
+function syncSlotTimes(i,j,slotEl,active){
+  const s=S.days[i].slots[j];if(!s)return;
+  const set=(f,v)=>{const inp=slotEl.querySelector(`[data-sf="${f}"]`);if(inp&&inp!==active&&inp.value!==v)inp.value=v};
+  set('t',s.t);set('e',s.e);
+  if(S.tz.b.on){let t2='',e2='',note='';if(s.t){const c=convert(i,s.t);t2=c.t2;if(c.diff)note=`${c.w.mo+1}/${c.w.d} (${WD_EN[c.w.dow]})`}if(s.e)e2=convertEnd(i,s.t,s.e).raw;set('t2',t2);set('e2',e2);
+    const nb=slotEl.querySelector('.tzb.b small');if(nb)nb.textContent=note}
+  const durM=s.t&&s.e?Math.round((endUtc(i,s.t,s.e)-startUtc(i,s.t))/6e4):0;
+  const na=slotEl.querySelector('.tzb:not(.b) small');if(na)na.textContent=[s.t&&s.e&&s.e<=s.t?'終了は翌日':'',durM?'配信 '+fmtDur(durM):''].filter(Boolean).join('・');
+}
 function rerenderDay(i){const el=body.querySelector(`.day[data-day="${i}"]`);if(el)el.outerHTML=dayHtml(i)}
 
 /* ---- tab: design ---- */
 function crBadge(c){const r=contrast(c.t,c.f);const cls=r>=7?'good':r>=4.5?'good':r>=3?'mid':'bad';const mk=r>=7?'◎':r>=4.5?'○':r>=3?'△':'×';return`<span class="cr ${cls}" title="文字と塗りのコントラスト比">${mk} ${r.toFixed(1)}</span>`}
+const DPRE={
+  pastel:{name:'パステル雲',days:['#f7a8c8','#f8c38b','#f1d97a','#8fdcc0','#94c8f5','#bba8f2','#f5a0b8'].map(b=>({b,f:'#fffafc',t:'#4a3a55'})),
+    st:{bg1:'#ffe3ef',bg2:'#e2ebff',bgType:'vgrad',bgPattern:'clouds',ink:'#5b4766',panel:'#ffffff',alpha:94,font:'zenmaru',num:'poppins',shape:'bubble',deco:'star',decoPos:'tr',radius:80,border:2.5,shadow:true,band:true}},
+  space:{name:'星空パープル',days:Array(7).fill(0).map(()=>({b:'#b18cff',f:'#221640',t:'#f3eeff'})),
+    st:{bg1:'#120a2e',bg2:'#3b1d6e',bgType:'grad',bgPattern:'stars',ink:'#ffffff',panel:'#221640',alpha:82,font:'mplus',num:'outfit',shape:'rect',deco:'sparkle',decoPos:'tr',radius:50,border:2.5,shadow:false,band:true}},
+  calendar:{name:'シンプルカレンダー',days:Array(7).fill(0).map(()=>({b:'#3a4256',f:'#ffffff',t:'#1f2433'})),
+    st:{bg1:'#f5f6f9',bg2:'#e6e9f0',bgType:'vgrad',bgPattern:'grid',ink:'#1f2433',panel:'#ffffff',alpha:100,font:'noto',num:'montserrat',shape:'rect',deco:'none',radius:18,border:2,shadow:true,band:true}},
+  note:{name:'手帳・ノート',days:Array(7).fill(0).map(()=>({b:'#6b5a48',f:'#fffdf7',t:'#3b3128'})),
+    st:{bg1:'#f6f1e6',bg2:'#ece3d0',bgType:'solid',bgPattern:'lines',ink:'#3b3128',panel:'#fffdf7',alpha:96,font:'kiwi',num:'same',shape:'tab',deco:'none',radius:22,border:2,shadow:true,band:true}},
+  spring:{name:'春・さくら',days:['#ef7fa3','#f29db8','#e98fb0','#df86ad','#f0a1bd','#e98aa6','#ee7b9d'].map(b=>({b,f:'#fff7fa',t:'#5a2c3d'})),
+    st:{bg1:'#ffe9f1',bg2:'#fff8fb',bgType:'vgrad',bgPattern:'petals',ink:'#6b2f45',panel:'#ffffff',alpha:94,font:'zenmaru',num:'poppins',shape:'ribbon',deco:'flower',decoPos:'tl',radius:40,border:2.5,shadow:true,band:true}},
+  pop:{name:'ポップ・ネコ耳',days:['#ff5c8a','#ff9f43','#ffd23f','#3dd6a3','#41b8ff','#9b7bff','#ff6fb5'].map(b=>({b,f:'#ffffff',t:'#2a2233'})),
+    st:{bg1:'#fff08a',bg2:'#ffc2d6',bgType:'grad',bgPattern:'dots',ink:'#2a2233',panel:'#ffffff',alpha:97,font:'mochiy',num:'poppins',shape:'cat',deco:'bow',decoPos:'tr',radius:60,border:3.5,shadow:true,band:true}},
+  mono:{name:'モノクロ・ボールド',days:Array(7).fill(0).map(()=>({b:'#f2f2f2',f:'#1a1a1d',t:'#f7f7f7'})),
+    st:{bg1:'#0d0d0f',bg2:'#26262b',bgType:'grad',bgPattern:'none',ink:'#ffffff',panel:'#1a1a1d',alpha:95,font:'dela',num:'bebas',shape:'cut',deco:'none',radius:30,border:2,shadow:false,band:true}},
+  moonsun:{name:'月と太陽（ベージュ×黒）',days:Array(7).fill(0).map(()=>({b:'#1b1820',f:'#fbf6ec',t:'#1b1820'})),
+    st:{bg1:'#dcc8a6',bg2:'#17151b',bgType:'diag',bgPattern:'none',ink:'#1b1820',panel:'#fbf6ec',alpha:96,font:'kaisei',num:'montserrat',shape:'rect',deco:'moonsun',decoPos:'tr',decoSize:150,radius:24,border:2.5,shadow:true,band:true,plate:true}},
+};
+function applyDPre(id,st){
+  st=st||S;const P=DPRE[id];if(!P)return;
+  const dowAt=i=>{const[y,m,d]=st.weekStart.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+i)).getUTCDay()};
+  st.days.forEach((d,i)=>{d.c=clone(P.days[dowAt(i)]);d.dc='';d.shape='';d.deco=''});
+  Object.assign(st.style,{palette:'custom',basePal:'',decoColor:'',decoSize:100,sunColor:'',satColor:'',holColor:'',wkColor:'',plate:false,outline:false,bgSrc:st.style.bgSrc==='image'&&st.img&&st.img.bg?'image':'color'},clone(P.st));
+  st.fonts={};st.style.dpre=id;
+}
+const DPRE_THUMBS={};
+async function fillDPreThumbs(){for(const id of Object.keys(DPRE)){if(DPRE_THUMBS[id])continue;const st=sampleDays(clone(S));st.layout=Object.assign({},st.layout,{mode:'land-right',landFull:'list',cols:1});st.style.bgSrc='color';applyDPre(id,st);st.img=Object.assign({},st.img,{avatar:false,bg:false,frameAll:false,frame:Array(7).fill(false)});
+  DPRE_THUMBS[id]=await thumbOf(st);const im=document.querySelector(`img[data-dpre="${id}"]`);if(im)im.src=DPRE_THUMBS[id]}}
+const ICONS={};
+function iconOf(kind,v){const key=kind+v;if(ICONS[key])return ICONS[key];const c=document.createElement('canvas');c.width=96;c.height=64;const x=c.getContext('2d');
+  if(kind==='shape'){const keep=S.days[0].shape;S.days[0].shape=v;CARD_EAR={x0:14,x1:44};x.fillStyle='#8b86a3';cardPath(x,14,22,68,32,8,0,22);x.fill();x.lineWidth=2;x.strokeStyle='#4b4660';x.stroke();x.save();cardPath(x,14,22,68,32,8,0,22);x.clip();x.fillStyle='#e0336f';x.fillRect(14,0,30,60);x.restore();CARD_EAR=null;S.days[0].shape=keep}
+  else{if(v==='none'){x.strokeStyle='#8b86a3';x.lineWidth=3;x.beginPath();x.arc(48,32,16,0,7);x.moveTo(37,43);x.lineTo(59,21);x.stroke()}else drawDecoAt(x,v,48,32,40,'#e0336f',0)}
+  return ICONS[key]=c.toDataURL()}
 function tabDesign(){
   const st=S.style;
-  let h=`<div class="grp"><h3>カラーテンプレート <span class="en">PALETTE</span></h3><div class="pals">`;
+  let h=`<div class="grp"><div class="row" style="justify-content:space-between"><h3 style="margin:0">デザイン <span class="en">DESIGN</span></h3><button class="btn sm ghost danger" data-act="designreset">デザインを一括初期化</button></div>
+    <p class="hint">色・フォント・枠の形と飾りを最初の状態に戻します。予定・画像はそのまま。間違えたら上の「戻る」で元に戻せます。</p></div>
+  <div class="grp"><h3>デザインテンプレート <span class="en">STYLE</span></h3>
+    <p class="hint">配信者さんの週間スケジュールでよく見るデザインを、色・背景の柄・フォント・枠の形・飾りまでまとめて当てはめます。あとから全部自由に変更できます。</p>
+    <div class="starters">${Object.entries(DPRE).map(([id,p])=>`<button class="starter" data-act="dpre" data-id="${id}" aria-pressed="${st.dpre===id}"><img data-dpre="${id}" src="${DPRE_THUMBS[id]||''}" alt=""><span>${p.name}</span></button>`).join('')}</div></div>
+  <div class="grp"><h3>カラーテンプレート <span class="en">PALETTE</span></h3><div class="pals">`;
   for(const[id,p]of Object.entries(PALETTES))h+=`<button class="pal" data-act="pal" data-id="${id}" aria-pressed="${st.palette===id}"><span class="sw">${p.days.map(d=>`<i style="background:${d.b}"></i>`).join('')}</span><span class="sw" style="height:8px"><i style="background:${p.bg[0]}"></i><i style="background:${p.days[0].f}"></i><i style="background:${p.bg[1]}"></i></span><span>${p.name}</span></button>`;
   h+=`</div><div class="row"><input type="color" id="autoColor" value="${S.days[0].c.b}" aria-label="テーマ色"><div class="seg" style="flex:1"><button type="button" data-act="autopal" data-tone="light">テーマ色から自動（明るめ）</button><button type="button" data-act="autopal" data-tone="dark">自動（暗め）</button></div></div>
   <p class="hint">好きな1色を選ぶと、7日分の枠・塗り・文字色をまとめて作ります。下の「1日ごとの色」で個別に変更もできます。</p></div>`;
@@ -1402,9 +1547,23 @@ function tabDesign(){
     <div class="row">${check('影を付ける','style.shadow')} ${check('日付部分を色帯にする','style.band')}</div>
   </div>`;
   const cs=(k,l,hue)=>{const v=st[k];const base=st.wkColor||autoWeekday();const sample=v||(k==='wkColor'?base:accent(hue));return`<div class="wkc"><span>${l}</span><input type="color" data-bind="style.${k}" id="s-${k}" value="${sample}">${v?`<button class="btn sm ghost" data-act="wkauto" data-k="${k}">自動に戻す</button>`:'<em>自動</em>'}</div>`};
+  const so=(sel,inh)=>(inh?`<option value="">${inh}</option>`:'')+SHAPES.map(([v,l])=>`<option value="${v}" ${v===sel?'selected':''}>${l}</option>`).join('');
+  const dop=(sel,inh)=>(inh?`<option value="">${inh}</option>`:'')+DECOS.map(([v,l])=>`<option value="${v}" ${v===sel?'selected':''}>${l}</option>`).join('');
+  h+=`<div class="grp" id="shapeGrp"><h3>枠の形と飾り <span class="en">SHAPE</span></h3>
+    <div class="sub-h">まとめて設定（全日）</div>
+    <div class="icons">${SHAPES.map(([v,l])=>`<button type="button" class="ico-btn" data-act="setshape" data-v="${v}" aria-pressed="${st.shape===v}"><img src="${iconOf('shape',v)}" alt="">${l}</button>`).join('')}</div>
+    <div class="icons">${DECOS.map(([v,l])=>`<button type="button" class="ico-btn" data-act="setdeco" data-v="${v}" aria-pressed="${st.deco===v}"><img src="${iconOf('deco',v)}" alt="">${l}</button>`).join('')}</div>
+    ${st.deco!=='none'||S.days.some(d=>d.deco&&d.deco!=='none')?`<label class="field"><span>飾りの位置</span>${seg('style.decoPos',[['tl','左上'],['tc','上の中央'],['tr','右上']],st.decoPos||'tr')}</label>
+    ${rangeRow('飾りの大きさ','style.decoSize',40,220,1,'%')}
+    <div class="row"><label class="check"><input type="color" data-bind="style.decoColor" id="s-decoc" value="${st.decoColor||decoColor(0)}"> 飾りの色</label>${st.decoColor?'<button class="btn sm ghost" data-act="decoauto">自動の色に戻す</button>':'<span class="hint">今は自動（各日の色に合わせる）</span>'}</div>`:''}
+    <div class="sub-h">日ごとに変える</div>
+    <p class="hint">まとめて設定したあと、好きな日だけ別の形・飾りにできます（曜日ごとに保存）。</p>
+    <div class="list">${S.days.map((d,i)=>`<div class="shrow" data-day="${i}"><b>${dayLabel(i)} ${WD_JA[dowOf(i)]}</b><select data-shp="shape" aria-label="枠の形">${so(d.shape||'','まとめて設定（'+(SHAPES.find(x=>x[0]===st.shape)||SHAPES[0])[1]+'）')}</select><select data-shp="deco" aria-label="飾り">${dop(d.deco||'','まとめて設定（'+(DECOS.find(x=>x[0]===st.deco)||DECOS[0])[1]+'）')}</select></div>`).join('')}</div>
+    <div class="row"><button class="btn sm" data-act="shpdays">日ごとの形・飾りをリセット</button><button class="btn sm ghost danger" data-act="shpall">形と飾りをすべて初期化</button></div>
+    <p class="hint">ネコ耳・タブは日付ボックスの上に、吹き出しのしっぽは下に出るので、そのぶん枠どうしの間が少し広がります。</p></div>`;
   h+=`<div class="grp" id="spGrp"><h3>特別な日の装飾 <span class="en">SPECIAL</span></h3>
     <p class="hint">記念日やイベントの日など、表示中の週の特定の日だけを目立たせます（設定は週ごとに保存）。光る枠・太い枠線・バッジが付き、その日だけ別のフォントにもできます。</p>
-    <div class="list">${S.days.map((d,i)=>{const sp=d.sp||{};return`<div class="sprow ${sp.on?'on':''}" data-day="${i}"><label class="check"><input type="checkbox" data-spf="on" ${sp.on?'checked':''}> <b>${dayLabel(i)} ${WD_JA[i]}</b></label>
+    <div class="list">${S.days.map((d,i)=>{const sp=d.sp||{};return`<div class="sprow ${sp.on?'on':''}" data-day="${i}"><label class="check"><input type="checkbox" data-spf="on" ${sp.on?'checked':''}> <b>${dayLabel(i)} ${WD_JA[dowOf(i)]}</b></label>
       ${sp.on?`<input type="text" data-spf="badge" value="${esc(sp.badge||'')}" placeholder="バッジ（例：記念日・SPECIAL）" aria-label="バッジの文字"><select data-spf="font" aria-label="この日のフォント">${fontOptions(sp.font||'','フォントはそのまま')}</select><label class="check"><input type="checkbox" data-spf="glow" ${sp.glow!==false?'checked':''}> 光らせる</label>`:''}</div>`}).join('')}</div></div>`;
   h+=`<div class="grp"><h3>曜日ラベルの色 <span class="en">WEEKDAY</span></h3>
     <p class="hint">左の日付ボックス（色帯）の色です。平日は7日共通の1色を背景・塗りの色から自動で作り、土曜は青系、日曜と祝日は赤系をその色に合う明るさ・鮮やかさで作ります。</p>
@@ -1416,7 +1575,7 @@ function tabDesign(){
   h+=`<div class="grp"><h3>1日ごとの色・枠画像 <span class="en">PER DAY</span></h3><div>`;
   for(let i=0;i<7;i++){const c=S.days[i].c;
     const hn=holidayOf(i);
-    h+=`<div class="drow" data-day="${i}"><span class="dn">${WD_EN[i]}<br><small style="font-weight:600;color:var(--muted)">${dayLabel(i)}</small>${hn?`<br><small class="hol">${esc(hn)}</small>`:''}</span>
+    h+=`<div class="drow" data-day="${i}"><span class="dn">${WD_EN[dowOf(i)]}<br><small style="font-weight:600;color:var(--muted)">${dayLabel(i)}</small>${hn?`<br><small class="hol">${esc(hn)}</small>`:''}</span>
       <label>曜日${S.days[i].dc?`<button class="mini-reset" data-act="dcauto" title="自動に戻す">自動に</button>`:'<em>自動</em>'}<input type="color" data-dcb="1" value="${bandColor(i)}"></label>
       <label>枠<input type="color" data-dc="b" value="${c.b}"></label><label>塗り<input type="color" data-dc="f" value="${c.f}"></label><label>文字<input type="color" data-dc="t" value="${c.t}"></label>
       <div class="tools"><span data-cr>${crBadge(c)}</span>${imgCtl('frame'+i,'枠画像')}</div></div>`;}
@@ -1467,9 +1626,9 @@ function tabBg(){
     h+=rangeRow('背景を暗く/明るく','style.dim',0,80,1,'%')+`<div class="row"><label class="check"><input type="color" data-bind="style.dimColor" id="s-dimc" value="${st.dimColor}"> 重ねる色（黒で暗く・白で明るく）</label></div></div>`;
   }else{
     h+=`<div class="grp"><h3>背景色 <span class="en">COLOR</span></h3>
-      <label class="field"><span>塗り方</span>${seg('style.bgType',[['solid','単色'],['grad','ななめグラデ'],['vgrad','たてグラデ'],['hgrad','よこグラデ']],st.bgType)}</label>
+      <label class="field"><span>塗り方</span>${seg('style.bgType',[['solid','単色'],['grad','ななめグラデ'],['vgrad','たてグラデ'],['hgrad','よこグラデ'],['diag','ななめ2色分割']],st.bgType)}</label>
       <div class="row"><label class="check"><input type="color" data-bind="style.bg1" id="s-bg1" value="${st.bg1}"> 色1</label>${st.bgType==='solid'?'':`<label class="check"><input type="color" data-bind="style.bg2" id="s-bg2" value="${st.bg2}"> 色2</label>`}</div>
-      ${check('うっすらドット柄を入れる','style.bgDots')}
+      <label class="field"><span>柄</span>${seg('style.bgPattern',[['none','なし'],['dots','ドット'],['grid','方眼'],['lines','ノート'],['stars','星空'],['clouds','雲'],['petals','花びら']],st.bgPattern||(st.bgDots?'dots':'none'))}</label>
       ${info?`<div class="row"><button class="btn sm" data-act="bgfromimg">背景画像から自然な色を作る</button></div>`:''}
       <p class="hint">カラーテンプレート（［デザイン］タブ）を選ぶと、背景色もそれに合わせて変わります。${info?'「背景画像から自然な色を作る」は、アップロード済みの画像のふちの色をもとに、落ち着いた2色を作ります。':''}</p>
       ${rangeRow('背景を暗く/明るく','style.dim',0,80,1,'%')}</div>`;
@@ -1627,9 +1786,9 @@ function tabLayout(){
   if(avOn)h+=rangeRow('アバターの幅','layout.avatar',20,60,1,'%')+check('アバター用の場所をプレビューに表示','layout.guide');
   if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<label class="field"><span>枠の幅</span>${seg('layout.width',[['fit','内容に合わせる（7日とも最大幅にそろえる）'],['fill','エリアいっぱい']],L.width)}</label>
     <label class="field"><span>列の数</span>${seg('layout.cols',[[1,'1列（縦に7日）'],[2,'2列（左右に分けて配置）']],L.cols||1)}</label>
-    ${(L.cols||1)===2?`<label class="field"><span>2列の並び順</span>${seg('layout.order2',[['split','左に日〜水／右に木〜土'],['stagger','交互・右列を半段下げる']],L.order2||'split')}</label>`:''}
+    ${(L.cols||1)===2?`<label class="field"><span>2列の並び順</span>${seg('layout.order2',[['split','左に前半4日／右に後半3日'],['stagger','交互・右列を半段下げる']],L.order2||'split')}</label>`:''}
     <label class="field"><span>枠の高さ</span>${seg('layout.rowH',[['auto','予定の数に合わせる（文字が大きくなる）'],['equal','7日ともそろえる']],L.rowH)}</label>`;
-  if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<p class="hint">横長の画像で左右が余るときは「2列」にすると、日曜〜水曜を左、木曜〜土曜を右に並べ、余った高さを使って1日の枠を高くします。文字をもっと大きくしたいときは、下の「時刻の並べ方」を「上下に並べる」にすると横幅に余裕ができます。</p>`;
+  if(!(L.mode==='land-full'&&L.landFull==='grid'))h+=`<p class="hint">横長の画像で左右が余るときは「2列」にすると、週の前半4日を左、後半3日を右に並べ、余った高さを使って1日の枠を高くします。文字をもっと大きくしたいときは、下の「時刻の並べ方」を「上下に並べる」にすると横幅に余裕ができます。</p>`;
   const HD=S.head;
   h+=`</div><div class="grp"><h3 id="headGrp">見出しと文字の大きさ <span class="en">HEADING</span></h3>
     <div class="row"><label class="field"><span>タイトル（日本語）</span><input type="text" data-bind="title.ja" id="h-tja" value="${esc(S.title.ja)}"></label><label class="field"><span>Title (English)</span><input type="text" data-bind="title.en" id="h-ten" value="${esc(S.title.en)}"></label></div>
@@ -1664,7 +1823,7 @@ function tzBlock(key,title){
   const off=effOffset(tz,now);
   return`<div class="row"><label class="field" style="flex-basis:100%"><span>${title}</span><select data-tz="${key}" data-tf="zone" id="tz-${key}-zone">${zoneOptions(tz.zone)}</select></label></div>
   <div class="row"><label class="field"><span>表記（空欄で自動：${esc(tzAbbr({...tz,label:''},now))}）</span><input type="text" data-tz="${key}" data-tf="label" id="tz-${key}-label" value="${esc(tz.label)}" placeholder="例：JST"></label>
-  <label class="field"><span>サマータイム</span><select data-tz="${key}" data-tf="dst" id="tz-${key}-dst"><option value="auto" ${tz.dst!=='off'?'selected':''}>適用する（その地域の暦に合わせる）</option><option value="off" ${tz.dst==='off'?'selected':''}>適用しない（常に標準時）</option></select></label></div>
+  <label class="field"><span>サマータイム</span><select data-tz="${key}" data-tf="dst" id="tz-${key}-dst"><option value="auto" ${tz.dst!=='off'?'selected':''}>適用する（暦どおり）</option><option value="off" ${tz.dst==='off'?'selected':''}>適用しない（標準時）</option></select></label></div>
   <p class="hint">${esc(zoneName(tz.zone))}：現在 UTC${fmtOff(off)}${isDst(tz,now)?'（サマータイム中）':''}</p>`;
 }
 function tabSettings(){
@@ -1672,6 +1831,7 @@ function tabSettings(){
     ${seg('lang',[['ja','日本語'],['en','English'],['both','日英併記']],S.lang)}
     <label class="field"><span>曜日の表記（日付の横）</span>${seg('wdStyle',[['en','英語の略称（SUN）'],['ja','日本語（日）'],['both','両方（SUN・日）']],S.wdStyle)}</label>
     <div class="row"><label class="field"><span>タイトル（日本語）</span><input type="text" data-bind="title.ja" id="s-tja" value="${esc(S.title.ja)}"></label><label class="field"><span>Title (English)</span><input type="text" data-bind="title.en" id="s-ten" value="${esc(S.title.en)}"></label></div>
+    <label class="field"><span>週のはじまり</span><select id="weekDowSel">${WD_JA.map((w,i)=>`<option value="${i}" ${i===(S.weekDow||0)?'selected':''}>${w}曜日（${WD_EN[i]}）</option>`).join('')}</select></label>
     <div class="row"><label class="field"><span>チャンネル名・名前（任意）</span><input type="text" data-bind="channel" id="s-ch" value="${esc(S.channel)}" placeholder="例：あさ / @asa_ch"></label></div>
     <div class="row"><label class="field"><span>注意書き（日本語）</span><input type="text" data-bind="note.ja" id="s-nja" value="${esc(S.note.ja)}"></label><label class="field"><span>Note (English)</span><input type="text" data-bind="note.en" id="s-nen" value="${esc(S.note.en)}"></label></div>
   </div>
@@ -1685,7 +1845,7 @@ function tabSettings(){
   S.tags.forEach((t,k)=>{h+=`<div class="trow" data-tag="${k}"><input type="color" data-tg="color" value="${t.color}" aria-label="色"><input type="text" data-tg="name" value="${esc(t.name)}" aria-label="タグ名"><span class="pill" style="background:${t.color};color:${autoInk(t.color)}">${t.off?'お休み用':esc(t.name)||'TAG'}</span>${t.off?'<span></span>':`<button class="x" data-act="deltag" aria-label="タグを削除">×</button>`}</div>`});
   h+=`</div><div class="row"><button class="btn sm" data-act="addtag">＋ タグを追加</button></div><p class="hint">「1st」「2nd」「EVENT」などの名前と色は自由に変えられます。灰色の「お休み用」タグは、お休みの日に表示されます。</p></div>
   <div class="grp"><h3>よく使う時間 <span class="en">QUICK ADD</span></h3><div class="list">`;
-  S.presets.forEach((p,k)=>{h+=`<div class="prow" data-pre="${k}"><input type="time" data-pf="t" value="${p.t}" aria-label="開始時刻"><input type="time" data-pf="e" value="${p.e||''}" aria-label="終了時刻（任意）"><select class="psel" data-pf="tag" aria-label="タグ">${tagOptions(p.tag)}</select><input class="pt" type="text" data-pf="title" value="${esc(p.title)}" placeholder="タイトル（任意）" aria-label="タイトル"><button class="btn sm pall" data-act="preall" title="お休み以外の全日に追加">全日に追加</button><button class="x" data-act="delpre" aria-label="削除">×</button></div>`});
+  S.presets.forEach((p,k)=>{h+=`<div class="prow" data-pre="${k}"><input class="pt1" type="time" data-pf="t" value="${p.t}" aria-label="開始時刻"><span class="tsep">〜</span><input class="pt2" type="time" data-pf="e" value="${p.e||''}" aria-label="終了時刻（任意）"><select class="psel" data-pf="tag" aria-label="タグ">${tagOptions(p.tag)}</select><input class="pt" type="text" data-pf="title" value="${esc(p.title)}" placeholder="タイトル（任意）" aria-label="タイトル"><button class="btn sm pall" data-act="preall" title="お休み以外の全日に追加">全日に追加</button><button class="x" data-act="delpre" aria-label="削除">×</button></div>`});
   h+=`</div><div class="row"><button class="btn sm" data-act="addpre">＋ 時間を追加</button></div><p class="hint">ここに登録した時間（最初は --:--〜--:--。開始・終了とも空欄でもOK）は［予定］タブの各曜日に「21:00〜23:00 1st」のようなボタンで並び、ワンタップで追加できます。各枠の「よく使う時間から入れる」でも選べて、入れたあとも自由に変更できます。</p></div>
   <div class="grp"><h3>アプリの表示 <span class="en">APP</span></h3>
     <label class="field"><span>アプリ（Webページ）の名前</span><input type="text" id="appName" value="${esc(appName())}" placeholder="Stream Week"></label>
@@ -1705,7 +1865,7 @@ function tabShare(){
     <p class="hint">PCでは「画像をコピー」してXの投稿画面に貼り付けるのが早いです。</p></div>
   <div class="grp"><h3>Xに投稿 <span class="en">POST</span></h3>
     <label class="field"><span>投稿の形</span>${seg('post.tpl',[['week','週間（くわしく）'],['compact','週間（短く）'],['today','今日の告知'],['custom','自分で作る']],S.post.tpl)}</label>
-    ${S.post.tpl==='today'?`<label class="field"><span>告知する日</span><select id="postDay">${[`<option value="-1" ${S.post.day<0?'selected':''}>自動（今日／次の配信日）</option>`].concat([0,1,2,3,4,5,6].map(i=>{const d=dayDate(i);return`<option value="${i}" ${S.post.day===i?'selected':''}>${d.mo+1}/${d.d}(${WD_JA[i]})</option>`})).join('')}</select></label>`:''}
+    ${S.post.tpl==='today'?`<label class="field"><span>告知する日</span><select id="postDay">${[`<option value="-1" ${S.post.day<0?'selected':''}>自動（今日／次の配信日）</option>`].concat([0,1,2,3,4,5,6].map(i=>{const d=dayDate(i);return`<option value="${i}" ${S.post.day===i?'selected':''}>${d.mo+1}/${d.d}(${WD_JA[d.dow]})</option>`})).join('')}</select></label>`:''}
     ${S.post.tpl==='custom'?`<label class="field"><span>テンプレート（{ }の部分が自動で入ります）</span><textarea id="postCustom" style="min-height:110px">${esc(S.post.custom||TPL.week[postLang()])}</textarea></label>
       <div class="chips">${['title','range','schedule','today','head','date','url','tags','name'].map(k=>`<button class="chipbtn" data-act="ptins" data-k="${k}">{${k}}</button>`).join('')}</div>`:''}
     <div class="sub-h">配信URL</div>
@@ -1723,10 +1883,15 @@ function tabShare(){
     <p class="hint" id="xHint"></p></div>
   <div class="grp"><h3>ほかの端末へ引継ぎ <span class="en">HANDOFF</span></h3>
     <p class="hint">データはこの端末のブラウザに保存されます。PC・スマホ・タブレットで続きを編集するときは、下のどちらかで移します。</p>
+    <div class="sub-h">設定と予定だけ（QR 1枚）</div>
     <div class="row"><button class="btn" data-act="handoff">引継ぎURL・QRコードを作る</button></div>
     <div id="handoffOut"></div>
+    <div class="sub-h">画像も一緒に（QRを連続表示）</div>
+    <p class="hint">送る側で「画像込みQRを表示」、受け取る側で「QRコードを読み取る」を開き、受け取る側のカメラを送る側の画面に向けます。何枚ものQRが自動で切り替わり、全部そろうと読み込めます（取りこぼしても次の周回で補います）。</p>
+    <div class="row"><button class="btn primary" data-act="qrsend">画像込みQRを表示（送る側）</button><button class="btn" data-act="qrscan">QRコードを読み取る（受け取る側）</button></div>
+    <div class="sub-h">ファイルで（いちばん高画質）</div>
     <div class="row"><button class="btn" data-act="backup">バックアップを保存（画像込み）</button><label class="btn file">バックアップを読み込む<input type="file" accept="application/json,.json" id="restoreFile"></label></div>
-    <p class="hint">引継ぎURLには<b>画像は含まれません</b>（URLが長くなりすぎるため）。背景・枠の画像ごと移すときはバックアップファイルを使います。</p></div>
+    <p class="hint">QRで送る画像は、枚数を減らすため少し小さく圧縮します。元の画質のまま移すときはバックアップファイルを使います。</p></div>
   <div class="grp"><h3>ホーム画面・デスクトップに追加 <span class="en">INSTALL</span></h3>
     <div id="installOut"></div></div>`;
 }
@@ -1748,7 +1913,7 @@ function postDayIdx(){if(S.post.day>=0)return S.post.day;const M=buildModel();co
 function postOpts(o){return{tpl:S.post.tpl,second:S.post.withSecond&&S.tz.b.on,end:S.post.withEnd,title:S.post.withTitle,off:S.post.withOff,...(o||{})}}
 function genPost(o){
   o=postOpts(o);const M=buildModel(),L=postLang();const lab=x=>(x||'').replace(/[()]/g,'');const sep=L==='en'?'–':'〜';
-  const dayLabel=d=>L==='en'?`${d.dt.mo+1}/${d.dt.d} (${WD_EN2[d.i]})`:`${d.dt.mo+1}/${d.dt.d}(${WD_JA[d.i]})`;
+  const dayLabel=d=>L==='en'?`${d.dt.mo+1}/${d.dt.d} (${WD_EN2[d.dt.dow]})`:`${d.dt.mo+1}/${d.dt.d}(${WD_JA[d.dt.dow]})`;
   const tiOf=it=>!o.title?'':(L==='en'?it.main:(it.main||it.sub));
   const timeTxt=it=>{if(it.tba)return it.p;let s=(o.end&&it.pe?it.ps+sep+it.pe:it.ps+(L==='en'?'':'〜'))+' '+lab(it.pl);
     if(o.second&&it.s2)s+=` / ${it.s2.pre?it.s2.pre+' ':''}${o.end&&it.s2.te?it.s2.ts+sep+it.s2.te:it.s2.ts} ${lab(it.s2.l)}`;return s};
@@ -1823,7 +1988,7 @@ function preflight(){
   if(S.img.avatar&&S.avatar.on&&IMG.avatar&&LAST.block){const a=avAABB(W,H),b=LAST.block;if(a){const ix=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)),iy=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
     if(ix*iy>a.w*a.h*0.06)out.push({msg:S.avatar.front?'アバターが予定の上に重なっています。':'アバターの一部が予定の後ろに隠れています。',tab:'avatar'});
     const vis=Math.max(0,Math.min(a.x+a.w,W)-Math.max(a.x,0))*Math.max(0,Math.min(a.y+a.h,H)-Math.max(a.y,0));if(vis<a.w*a.h*0.6)out.push({msg:'アバターの多くが画像の外にはみ出しています。',tab:'avatar'})}}
-  const bad=S.days.map((d,i)=>contrast(d.c.t,d.c.f)<3&&S.style.alpha>=50?WD_JA[i]:'').filter(Boolean);
+  const bad=S.days.map((d,i)=>contrast(d.c.t,d.c.f)<3&&S.style.alpha>=50?WD_JA[dowOf(i)]:'').filter(Boolean);
   if(bad.length)out.push({msg:`${bad.join('・')}曜日の文字の色が背景と近く、読みにくくなっています。`,tab:'design'});
   if(weekEmpty(packWeek()))out.push({msg:'この週の予定がまだ入っていません。',tab:'sched'});
   return out;
@@ -1920,12 +2085,106 @@ async function checkImport(){
   }catch(e){toast('引継ぎURLが壊れているようです。もう一度作り直してください')}
 }
 
+/* ---------- multi-QR transfer ---------- */
+const QRQ={std:{bg:900,av:640,fr:480,jq:0.62,chunk:620,label:'標準（はやい）'},hi:{bg:1400,av:1000,fr:800,jq:0.78,chunk:620,label:'高画質（時間がかかる）'}};
+let QS={q:'std',fps:6,chunks:[],i:0,timer:0,paused:false,id:'',cache:new Map()};
+function hasAlpha(im){try{const c=document.createElement('canvas');c.width=48;c.height=48;const x=c.getContext('2d');x.drawImage(im,0,0,48,48);const d=x.getImageData(0,0,48,48).data;for(let o=3;o<d.length;o+=4)if(d[o]<245)return true}catch(e){}return false}
+async function encImg(im,max,jq){
+  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,sc=Math.min(1,max/Math.max(iw,ih));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(iw*sc));c.height=Math.max(1,Math.round(ih*sc));c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  const alpha=hasAlpha(im);let type=alpha?'image/webp':'image/jpeg';
+  let b=await new Promise(r=>c.toBlob(r,type,alpha?0.82:jq));
+  if(!b||b.type!==type){b=await new Promise(r=>c.toBlob(r,alpha?'image/png':'image/jpeg',jq))}
+  return b;
+}
+async function buildTransfer(q){
+  const cfg=QRQ[q];const metas=[],blobs=[];
+  for(const k of imgKeys()){if(!hasImg(k)||!IMG[k])continue;const max=k==='bg'?cfg.bg:k==='avatar'?cfg.av:cfg.fr;const b=await encImg(IMG[k],max,cfg.jq);if(!b)continue;metas.push({k,type:b.type,len:b.size});blobs.push(new Uint8Array(await b.arrayBuffer()))}
+  const st=clone(S);
+  const head=new TextEncoder().encode(JSON.stringify({app:'stream-week',v:1,state:st,imgs:metas}));
+  const total=4+head.length+blobs.reduce((a,b)=>a+b.length,0);const buf=new Uint8Array(total);new DataView(buf.buffer).setUint32(0,head.length);buf.set(head,4);let o=4+head.length;for(const b of blobs){buf.set(b,o);o+=b.length}
+  let code;try{const stx=new Blob([buf]).stream().pipeThrough(new CompressionStream('deflate-raw'));code='z'+b64u(new Uint8Array(await new Response(stx).arrayBuffer()))}catch(e){code='r'+b64u(buf)}
+  const id=uid().slice(0,4),n=Math.ceil(code.length/cfg.chunk),out=[];
+  for(let i=0;i<n;i++)out.push(`SW1:${id}:${i}:${n}:`+code.slice(i*cfg.chunk,(i+1)*cfg.chunk));
+  return{id,chunks:out,bytes:total};
+}
+function drawQr(canvas,text){
+  let q=QS.cache.get(text);if(!q){q=qrcode(0,'L');q.addData(text);q.make();QS.cache.set(text,q)}
+  const n=q.getModuleCount(),m=4,size=canvas.width,cell=size/(n+m*2),x=canvas.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,size,size);x.fillStyle='#000';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect(Math.floor((c+m)*cell),Math.floor((r+m)*cell),Math.ceil(cell),Math.ceil(cell));
+}
+let WAKE=null;
+async function openQrSend(){
+  dialog.classList.add('wide');
+  openModal(`<h2>画像込みQRを表示</h2><p class="hint">受け取る側の端末で［共有］→「QRコードを読み取る」を開き、この画面にカメラを向けてください。画面を明るくすると読み取りやすくなります。</p>
+    <div class="qrsend"><canvas id="qrCv" width="720" height="720" aria-label="切り替わるQRコード"></canvas><div class="qrinfo"><b id="qrNo">準備中…</b><span id="qrMeta" class="hint"></span>
+    <label class="field"><span>画質</span>${seg('_qrq',Object.entries(QRQ).map(([k,v])=>[k,v.label]),QS.q)}</label>
+    <label class="field"><span>切り替えの速さ</span>${seg('_qrfps',[[3,'ゆっくり'],[6,'ふつう'],[10,'はやい']],QS.fps)}</label>
+    <div class="row"><button class="btn sm" data-act="qrprev">◀</button><button class="btn sm" data-act="qrpause">一時停止</button><button class="btn sm" data-act="qrnext">▶</button></div></div></div>
+    <div class="acts"><button class="btn" data-close>閉じる</button></div>`);
+  try{WAKE=await navigator.wakeLock?.request('screen')}catch(e){}
+  await startQrSend();
+}
+async function startQrSend(){
+  clearInterval(QS.timer);$('#qrNo').textContent='QRを作成中…';
+  const t=await buildTransfer(QS.q);QS.chunks=t.chunks;QS.i=0;QS.cache.clear();QS.paused=false;
+  const secs=Math.ceil(QS.chunks.length/QS.fps);
+  $('#qrMeta').textContent=`全${QS.chunks.length}枚・1周 約${secs}秒（データ ${Math.round(t.bytes/1024)}KB）`;
+  tickQr();QS.timer=setInterval(()=>{if(!QS.paused){QS.i=(QS.i+1)%QS.chunks.length;tickQr()}},1000/QS.fps);
+}
+function tickQr(){const cv=$('#qrCv');if(!cv||!QS.chunks.length){clearInterval(QS.timer);return}drawQr(cv,QS.chunks[QS.i]);const no=$('#qrNo');if(no)no.textContent=`${QS.i+1} / ${QS.chunks.length}`}
+function stopQrSend(){clearInterval(QS.timer);QS.chunks=[];try{WAKE&&WAKE.release()}catch(e){}WAKE=null}
+/* scanner */
+let SC={stream:null,raf:0,parts:null,id:'',n:0,busy:false};
+function loadScript(src){return new Promise((res,rej)=>{if(window.jsQR)return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function openQrScan(){
+  openModal(`<h2>QRコードを読み取る</h2><div class="scanbox"><video id="scanV" playsinline muted></video><div class="scanframe"></div></div>
+    <div class="scanbar"><div id="scanBar"></div></div><p class="hint" id="scanMsg">カメラを起動しています…</p>
+    <div class="acts"><button class="btn" data-close>閉じる</button></div>`);
+  SC.parts=null;SC.id='';SC.n=0;
+  try{await loadScript('lib/jsQR.js')}catch(e){$('#scanMsg').textContent='読み取りの準備に失敗しました。通信状態を確認してください。';return}
+  try{SC.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},audio:false})}
+  catch(e){$('#scanMsg').textContent=location.protocol!=='https:'?'カメラは https で公開したページでのみ使えます。':'カメラを使えませんでした。ブラウザの設定でカメラの使用を許可してください。';return}
+  const v=$('#scanV');v.srcObject=SC.stream;await v.play().catch(()=>{});
+  $('#scanMsg').textContent='送る側のQRコードを枠の中に映してください。';
+  const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});
+  const loop=()=>{if(!SC.stream)return;SC.raf=requestAnimationFrame(loop);if(v.readyState<2||SC.busy)return;
+    const sc=Math.min(1,900/Math.max(v.videoWidth,v.videoHeight));c.width=Math.round(v.videoWidth*sc);c.height=Math.round(v.videoHeight*sc);x.drawImage(v,0,0,c.width,c.height);
+    const r=window.jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'dontInvert'});if(r&&r.data)onScan(r.data)};
+  loop();
+}
+function stopScan(){cancelAnimationFrame(SC.raf);if(SC.stream){SC.stream.getTracks().forEach(t=>t.stop());SC.stream=null}}
+async function onScan(t){
+  const m=t.match(/#import=(.+)$/);
+  if(m){stopScan();closeModal();location.hash='import='+m[1];await checkImport();return}
+  const p=t.match(/^SW1:(\w+):(\d+):(\d+):(.*)$/s);if(!p)return;
+  const[,id,iS,nS,data]=p;const i=+iS,n=+nS;
+  if(SC.id!==id){SC.id=id;SC.n=n;SC.parts=new Map()}
+  if(SC.parts.has(i))return;SC.parts.set(i,data);
+  const bar=$('#scanBar');if(bar)bar.style.width=(SC.parts.size/n*100)+'%';
+  const msg=$('#scanMsg');if(msg)msg.textContent=`受け取り中… ${SC.parts.size} / ${n}（残り ${n-SC.parts.size}枚）`;
+  if(SC.parts.size===n){SC.busy=true;stopScan();const code=[...Array(n).keys()].map(k=>SC.parts.get(k)).join('');try{await applyTransfer(code)}catch(e){toast('データを組み立てられませんでした。もう一度読み取ってください')}SC.busy=false}
+}
+async function applyTransfer(code){
+  let buf=unb64u(code.slice(1));
+  if(code[0]==='z'){const st=new Blob([buf]).stream().pipeThrough(new DecompressionStream('deflate-raw'));buf=new Uint8Array(await new Response(st).arrayBuffer())}
+  const hl=new DataView(buf.buffer,buf.byteOffset).getUint32(0);const head=JSON.parse(new TextDecoder().decode(buf.subarray(4,4+hl)));if(head.app!=='stream-week')throw 0;
+  closeModal();
+  const ok=await confirmBox('受け取ったデータを読み込みますか？',`予定・デザイン・設定と、画像${head.imgs.length}枚がこの端末に上書きされます。`,'読み込む');if(!ok)return;
+  S=normalize(head.state);let o=4+hl;
+  for(const k of imgKeys()){delete IMG[k];await DB.del(k)}
+  for(const mt of head.imgs){const b=new Blob([buf.subarray(o,o+mt.len)],{type:mt.type});o+=mt.len;await DB.put(mt.k,b);try{IMG[mt.k]=await blobToImg(b)}catch(e){}}
+  for(const k of imgKeys())setHas(k,!!IMG[k]);IMGV++;delete IMGINFO.bg;AVC.key='';
+  postDirty=false;save();renderTab();schedule();toast('画像込みのデータを読み込みました');
+}
+
 /* =========================================================
    modal / toast / theme
    ========================================================= */
 const modal=$('#modal'),dialog=$('#dialog');
 function openModal(html){dialog.innerHTML=html;modal.hidden=false;const f=dialog.querySelector('button');if(f)f.focus()}
-function closeModal(){modal.hidden=true;dialog.innerHTML='';dialog.classList.remove('wide');NEWHTML=null;if(confirmResolve){confirmResolve(false);confirmResolve=null}}
+function closeModal(){stopQrSend();stopScan();modal.hidden=true;dialog.innerHTML='';dialog.classList.remove('wide');NEWHTML=null;if(confirmResolve){confirmResolve(false);confirmResolve=null}}
 let confirmResolve=null;
 function confirmBox(title,msg,okLabel='読み込む'){return new Promise(res=>{openModal(`<h2>${esc(title)}</h2><p class="hint">${esc(msg)}</p><div class="acts"><button class="btn" data-close>やめる</button><button class="btn primary" data-ok>${esc(okLabel)}</button></div>`);confirmResolve=res})}
 modal.addEventListener('click',async e=>{
@@ -1955,7 +2214,14 @@ tabsEl.addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)retur
   b.scrollIntoView?.({block:'nearest',inline:'center'})});
 const mqMobile=matchMedia('(max-width:900px)');
 function placeTabs(){const st=document.getElementById('stage');if(mqMobile.matches){if(tabsEl.parentElement!==st){st.appendChild(tabsEl);tabsEl.classList.add('in-stage')}}else if(tabsEl.parentElement!==panelEl){panelEl.prepend(tabsEl);tabsEl.classList.remove('in-stage')}}
-placeTabs();mqMobile.addEventListener?.('change',placeTabs);
+placeTabs();mqMobile.addEventListener?.('change',()=>{placeTabs();updStick()});
+function updStick(){const top=document.querySelector('.top').offsetHeight;const st=document.getElementById('stage');
+  const v=mqMobile.matches?st.getBoundingClientRect().height+top:top+tabsEl.offsetHeight;document.documentElement.style.setProperty('--stick',Math.round(v)+'px')}
+try{const ro=new ResizeObserver(()=>updStick());ro.observe(document.getElementById('stage'));ro.observe(tabsEl)}catch(e){}
+addEventListener('resize',updStick);updStick();
+document.addEventListener('focusin',e=>{const el=e.target;if(!el.closest||!el.closest('#body'))return;if(!/INPUT|SELECT|TEXTAREA/.test(el.tagName))return;
+  setTimeout(()=>{const stick=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stick'))||0;const r=el.getBoundingClientRect();const day=el.closest('.day');const extra=day?48:12;
+    if(r.top<stick+extra)scrollBy({top:r.top-stick-extra,behavior:'smooth'});else{const vb=(window.visualViewport?visualViewport.height:innerHeight);if(r.bottom>vb-12)scrollBy({top:r.bottom-vb+24,behavior:'smooth'})}},320)});
 function onSeg(b){
   const k=b.dataset.seg;let v=b.dataset.v;
   if(k==='_theme'){applyTheme(v);renderTab();return}
@@ -2009,10 +2275,12 @@ body.addEventListener('change',async e=>{
   {const urlEl=el.closest('[data-url]');if(urlEl&&el.dataset.uf&&el.dataset.uf!=='url'){const u=S.post.urls[+urlEl.dataset.url];u[el.dataset.uf]=el.type==='checkbox'?el.checked:el.value;postDirty=false;save();refreshPost();return}}
   if(el.id==='postDay'){S.post.day=+el.value;postDirty=false;save();refreshPost();return}
   if(el.id==='restoreFile'){const f=el.files&&el.files[0];if(f)importBackup(f);el.value='';return}
+  if(el.id==='weekDowSel'){await setWeekDow(+el.value);return}
   if(el.id==='weekDate'){if(el.value){const[y,m,d]=el.value.split('-').map(Number);switchWeek(sundayOf(new Date(y,m-1,d)))}return}
   if(el.dataset.tz){const tz=S.tz[el.dataset.tz];tz[el.dataset.tf]=el.value;if(el.dataset.tf==='zone')tz.label='';postDirty=false;changed(true);return}
   const dayEl=el.closest('[data-day]'),slotEl=el.closest('[data-slot]');
   if(dayEl&&el.dataset.spf&&el.type!=='text'){const sp=S.days[+dayEl.dataset.day].sp;const f=el.dataset.spf;sp[f]=el.type==='checkbox'?el.checked:el.value;save();schedule();if(f==='on')renderTab();return}
+  if(dayEl&&el.dataset.shp){S.days[+dayEl.dataset.day][el.dataset.shp]=el.value;save();schedule();renderTab();return}
   if(dayEl&&el.dataset.dcb){renderTab();return}
   if(dayEl&&el.dataset.df==='off'){const i=+dayEl.dataset.day;S.days[i].off=el.checked;postDirty=false;save();schedule();rerenderDay(i);return}
   if(dayEl&&slotEl&&el.dataset.sf){
@@ -2024,7 +2292,10 @@ body.addEventListener('change',async e=>{
     else if(f==='tag'){s.tag=el.value}
     else if(f==='preset'){if(el.value==='')return;const p=S.presets[+el.value];if(!p)return;s.t=p.t||'';s.e=p.e||'';if(p.tag)s.tag=p.tag;if(p.title&&!s.title)s.title=p.title;if(p.titleEn&&!s.titleEn)s.titleEn=p.titleEn;toast('よく使う時間を入れました（あとから自由に変更できます）')}
     else return;
-    postDirty=false;save();schedule();if(f!=='tag')rerenderDay(i);return;
+    postDirty=false;save();schedule();
+    if(f==='t'||f==='e'||f==='t2'||f==='e2')syncSlotTimes(i,+slotEl.dataset.slot,slotEl,el);
+    else if(f!=='tag')rerenderDay(i);
+    return;
   }
   const preEl=el.closest('[data-pre]');
   if(preEl&&el.dataset.pf){S.presets[+preEl.dataset.pre][el.dataset.pf]=el.value;save();return}
@@ -2049,6 +2320,14 @@ body.addEventListener('click',async e=>{
     case'copyprev':{const pw=addDaysStr(S.weekStart,-7);storeWeek();const src=S.weeks[pw];if(!src){toast('前の週の予定がありません');break}
       if(!weekEmpty(packWeek())&&!(await confirmBox('前の週の予定をコピーしますか？','この週に入っている予定は置き換わります。','コピーする')))break;
       S.days.forEach((d,i)=>{const x=src.days[i];d.off=x.off;d.offNote=x.offNote;d.offNoteEn=x.offNoteEn;d.slots=clone(x.slots);d.sp=x.sp?clone(x.sp):d.sp});postDirty=false;changed(true);toast('前の週の予定をコピーしました');break}
+    case'dpre':applyDPre(a.dataset.id);changed(true);toast(`「${DPRE[a.dataset.id].name}」を当てはめました（戻るボタンで元に戻せます）`);break;
+    case'setshape':S.style.shape=a.dataset.v;changed(true);break;
+    case'setdeco':S.style.deco=a.dataset.v;changed(true);break;
+    case'decoauto':S.style.decoColor='';changed(true);break;
+    case'shpdays':S.days.forEach(d=>{d.shape='';d.deco=''});changed(true);toast('日ごとの形・飾りをまとめて設定に戻しました');break;
+    case'shpall':S.days.forEach(d=>{d.shape='';d.deco=''});Object.assign(S.style,{shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100});changed(true);toast('形と飾りを初期化しました（戻るボタンで元に戻せます）');break;
+    case'designreset':{applyPalette(S.style.basePal&&PALETTES[S.style.basePal]?S.style.basePal:'sunday');resetWeekdayColors();S.fonts={};S.days.forEach(d=>{d.shape='';d.deco=''});
+      Object.assign(S.style,{shape:'rect',deco:'none',decoPos:'tr',decoColor:'',decoSize:100,radius:36,border:3,shadow:true,band:true,outline:false,plate:false,font:'mplus',num:'outfit'});changed(true);toast('デザインを初期化しました（予定と画像は残っています）');break}
     case'bulkfont':{const id=$('#bulkFont').value;if(FONTS[id]){S.style.font=id;S.style.num='same'}else{S.style.num=id}S.fonts={};changed(true);toast('すべての文字のフォントを変更しました');break}
     case'fontsreset':S.fonts={};changed(true);break;
     case'resetwk':resetWeekdayColors();changed(true);toast('曜日ラベルの色を初期化しました（戻るボタンで元に戻せます）');break;
@@ -2107,14 +2386,16 @@ body.addEventListener('click',async e=>{
     case'handoff':makeHandoff();break;
     case'copyurl':{const inp=$('#handoffUrl');try{await navigator.clipboard.writeText(inp.value);toast('URLをコピーしました')}catch(err){inp.select();toast('選択しました。コピーしてください')}break}
     case'backup':exportBackup();break;
+    case'qrsend':openQrSend();break;
+    case'qrscan':openQrScan();break;
     case'doinstall':doInstall();break;
   }
 });
-function applyPalette(id){const P=PALETTES[id];if(!P)return;S.style.palette=id;S.style.basePal=id;S.days.forEach((d,i)=>d.c=clone(P.days[i]));Object.assign(S.style,{ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],alpha:P.alpha})}
+function applyPalette(id){const P=PALETTES[id];if(!P)return;S.style.palette=id;S.style.dpre='';S.style.basePal=id;S.days.forEach((d,i)=>d.c=clone(P.days[dowOf(i)]));Object.assign(S.style,{ink:P.ink,panel:P.panel,bg1:P.bg[0],bg2:P.bg[1],alpha:P.alpha})}
 function resetDayColors(){
   const b=S.style.basePal||S.style.palette||'sunday';
   if(String(b).startsWith('auto:')){const[,hex,tone]=b.split(':');const keep=clone(S.style);autoPalette(hex,tone);const days=S.days.map(d=>d.c);S.style=keep;S.days.forEach((d,i)=>d.c=days[i])}
-  else{const P=PALETTES[b]||PALETTES.sunday;S.days.forEach((d,i)=>d.c=clone(P.days[i]));if(PALETTES[b])S.style.palette=b}
+  else{const P=PALETTES[b]||PALETTES.sunday;S.days.forEach((d,i)=>d.c=clone(P.days[dowOf(i)]));if(PALETTES[b])S.style.palette=b}
 }
 function resetWeekdayColors(){S.days.forEach(d=>d.dc='');Object.assign(S.style,{sunColor:'',satColor:'',holColor:'',wkColor:'',holOn:true,bandFix:true})}
 function autoPalette(hex,tone){
@@ -2221,6 +2502,8 @@ dialog.addEventListener('change',e=>{
   if(el.dataset.nopt){NEWOPT[el.dataset.nopt]=el.checked}
 });
 dialog.addEventListener('click',async e=>{
+  const sg=e.target.closest('[data-seg]');
+  if(sg&&(sg.dataset.seg==='_qrq'||sg.dataset.seg==='_qrfps')){sg.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===sg)));if(sg.dataset.seg==='_qrq'){QS.q=sg.dataset.v;await startQrSend()}else{QS.fps=+sg.dataset.v;clearInterval(QS.timer);QS.timer=setInterval(()=>{if(!QS.paused){QS.i=(QS.i+1)%QS.chunks.length;tickQr()}},1000/QS.fps);const secs=Math.ceil(QS.chunks.length/QS.fps);const mm=$('#qrMeta');if(mm)mm.textContent=mm.textContent.replace(/約\d+秒/,'約'+secs+'秒')}return}
   const a=e.target.closest('[data-act]');if(!a)return;const i=+a.dataset.i;
   switch(a.dataset.act){
     case'slotsave':await saveSlot(i);break;
@@ -2232,6 +2515,9 @@ dialog.addEventListener('click',async e=>{
     case'openslots':openSlots();break;
     case'pickstart':NEWSRC={type:a.dataset.type,id:a.dataset.type==='slot'?+a.dataset.id:a.dataset.id};if(NEWHTML)dialog.innerHTML=NEWHTML();break;
     case'startnew':await startNew();break;
+    case'qrprev':QS.i=(QS.i-1+QS.chunks.length)%QS.chunks.length;tickQr();break;
+    case'qrnext':QS.i=(QS.i+1)%QS.chunks.length;tickQr();break;
+    case'qrpause':QS.paused=!QS.paused;a.textContent=QS.paused?'再開':'一時停止';break;
   }
 });
 $('#btnSlots').addEventListener('click',()=>{SLOT_CONFIRM=-1;openSlots()});
